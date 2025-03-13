@@ -1450,12 +1450,15 @@
                                 });
 
                                 document.getElementById('clickToCallBtn').addEventListener('click', () => {
-                                    // Verify ID is still in localStorage
-                                    const storedId = localStorage.getItem('currentTelecallerId');
-                                    console.log('Opening clicktocall with ID:', storedId);
-                                    window.open('clicktocall.html', '_blank');
-                                    optionsModal.remove();
-                                    telecallerModal.remove();
+                                    // Set the telecaller ID and navigation flag
+                                    localStorage.setItem('fromSelectOptions', 'true');
+                                    
+                                    // Open click to call in a new window
+                                    openClickToCall(i);
+                                    
+                                    // DON'T remove the popup - just hide it so we can return to it
+                                    optionsModal.style.display = 'none';
+                                    // optionsModal.remove(); - REMOVE THIS LINE
                                 });
 
                                 // Back button handler
@@ -3569,9 +3572,15 @@
             
             // Click to Call button event listener
             document.getElementById('clickToCallBtn').addEventListener('click', () => {
-                optionsModal.remove();
-                // Open click to call
+                // Set the telecaller ID and navigation flag
+                localStorage.setItem('fromSelectOptions', 'true');
+                
+                // Open click to call in a new window
                 openClickToCall(telecallerId);
+                
+                // DON'T remove the popup - just hide it so we can return to it
+                optionsModal.style.display = 'none';
+                // optionsModal.remove(); - REMOVE THIS LINE
             });
         }
 
@@ -3680,6 +3689,34 @@
                     this.style.background = 'white';
                 });
             });
+        });
+
+        // Add event listener for when window regains focus
+        window.addEventListener('focus', function() {
+            // Check if we should show the options popup again
+            if (localStorage.getItem('showOptionsPopup') === 'true') {
+                // Clear the flag
+                localStorage.removeItem('showOptionsPopup');
+                
+                // Show the options popup if it exists
+                const optionsModal = document.querySelector('.modal');
+                if (optionsModal) {
+                    optionsModal.style.display = 'block';
+                }
+            }
+        });
+
+        // Modify Click to Call button handler
+        document.getElementById('clickToCallBtn').addEventListener('click', () => {
+            // Set flags
+            localStorage.setItem('fromSelectOptions', 'true');
+            localStorage.setItem('showOptionsPopup', 'true');
+            
+            // Open click to call in a new window
+            openClickToCall(telecallerId);
+            
+            // Hide the popup instead of removing it
+            optionsModal.style.display = 'none';
         });
     </script>
     
