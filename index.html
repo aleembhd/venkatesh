@@ -975,6 +975,20 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-left-color: #000;
+            animation: spin 1.2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -1292,7 +1306,7 @@
                 // Use cachedNames to immediately populate the UI without waiting
                 const names = cachedNames || {};
                 
-                // Initially show names using cached data
+                // Initially show names using cached data (keeping this exactly the same)
                 telecallerModal.innerHTML = `
                     ${editStyles}
                     <div class="modal-content">
@@ -1300,6 +1314,11 @@
                             ← Back
                         </button>
                         <h2>Select Telecaller</h2>
+                        <!-- Add loading overlay that will disappear when data is loaded -->
+                        <div id="loadingOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10;">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 15px; color: #333; font-size: 14px;">Loading telecaller data...</p>
+                        </div>
                         <div style="display: flex; flex-direction: column; gap: 20px;" id="telecallerButtonsContainer">
                             ${Array.from({ length: 16 }, (_, i) => {
                                 const number = i;
@@ -1326,9 +1345,28 @@
                     </div>
                 `;
                 
+                // Add spinner styles without affecting other styles
+                const spinnerStyles = document.createElement('style');
+                spinnerStyles.textContent = `
+                    .spinner {
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid rgba(0, 0, 0, 0.1);
+                        border-radius: 50%;
+                        border-left-color: #000;
+                        animation: spin 1.2s linear infinite;
+                    }
+                    
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(spinnerStyles);
+                
                 document.body.appendChild(telecallerModal);
-
-                // Add click handlers only for non-excluded buttons
+                
+                // Add click handlers only for non-excluded buttons - KEEP ALL EXISTING FUNCTIONALITY
                 for(let i = 0; i <= 15; i++) {
                     if (!excludedButtons.includes(i)) {
                         const button = document.getElementById(`telecaller${i}Btn`);
@@ -1339,133 +1377,133 @@
                                 console.log('Stored telecaller ID:', i); // Debug log
                                 
                                 const telecallerEmail = `telecaller${i}@gmail.com`;
-                                localStorage.setItem('telecallerEmail', telecallerEmail);
-                                
+                    localStorage.setItem('telecallerEmail', telecallerEmail);
+                    
                                 // Create and show the options modal
-                                const optionsModal = document.createElement('div');
-                                optionsModal.className = 'modal';
-                                optionsModal.style.display = 'block';
-                                optionsModal.innerHTML = `
-                                    <div class="modal-content">
-                                        <button class="back-button" style="position: absolute; top: 15px; left: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
-                                            ← Back
-                                        </button>
-                                        <button class="activity-btn" id="myActivityBtn" style="position: absolute; top: 15px; right: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
-                                            My Activity
-                                        </button>
-                                        <h2>Select Option</h2>
-                                        <div style="display: flex; flex-direction: column; gap: 20px;">
-                                            <button id="dialpadBtn" class="manager-btn">
-                                                <span>Dialpad</span>
-                                            </button>
-                                            <button id="clickToCallBtn" class="manager-btn">
-                                                <span>Click to Call</span>
-                                            </button>
-                                        </div>
-                                        <div class="activity-dropdown" id="activityDropdown" style="
-                                            display: none; 
-                                            position: absolute; 
-                                            top: 50px; 
-                                            right: 15px; 
-                                            background: white; 
-                                            border-radius: 12px; 
-                                            box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
-                                            width: 220px; 
-                                            z-index: 1001;
-                                            overflow: hidden;
-                                            transition: all 0.2s ease;
-                                            border: 1px solid rgba(0,0,0,0.1);
-                                        ">
-                                            <div class="activity-option" style="
-                                                padding: 14px 18px;
-                                                cursor: pointer;
-                                                display: flex;
-                                                justify-content: space-between;
-                                                align-items: center;
-                                                transition: background 0.2s;
-                                                border-bottom: 1px solid rgba(0,0,0,0.05);
+                const optionsModal = document.createElement('div');
+                optionsModal.className = 'modal';
+                optionsModal.style.display = 'block';
+                optionsModal.innerHTML = `
+                    <div class="modal-content">
+                        <button class="back-button" style="position: absolute; top: 15px; left: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                            ← Back
+                        </button>
+                        <button class="activity-btn" id="myActivityBtn" style="position: absolute; top: 15px; right: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                            My Activity
+                        </button>
+                        <h2>Select Option</h2>
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <button id="dialpadBtn" class="manager-btn">
+                                <span>Dialpad</span>
+                            </button>
+                            <button id="clickToCallBtn" class="manager-btn">
+                                <span>Click to Call</span>
+                            </button>
+                        </div>
+                        <div class="activity-dropdown" id="activityDropdown" style="
+                            display: none; 
+                            position: absolute; 
+                            top: 50px; 
+                            right: 15px; 
+                            background: white; 
+                            border-radius: 12px; 
+                            box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
+                            width: 220px; 
+                            z-index: 1001;
+                            overflow: hidden;
+                            transition: all 0.2s ease;
+                            border: 1px solid rgba(0,0,0,0.1);
+                        ">
+                            <div class="activity-option" style="
+                                padding: 14px 18px;
+                                cursor: pointer;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                transition: background 0.2s;
+                                border-bottom: 1px solid rgba(0,0,0,0.05);
                                             " onclick="handleActivityClick('${i}', 'all')">
-                                                
-                                            </div>
-                                            <div class="activity-option" style="
-                                                padding: 14px 18px;
-                                                cursor: pointer;
-                                                display: flex;
-                                                justify-content: space-between;
-                                                align-items: center;
-                                                transition: background 0.2s;
-                                                border-bottom: 1px solid rgba(0,0,0,0.05);
-                                            " onclick="handleActivityClick('${i}', 'unanswered')">
-                                                <span style="color: #333; font-size: 14px; font-weight: 500;">Not Lift Calls</span>
-                                                <span class="activity-count" id="unansweredCount" style="
-                                                    color: #666;
-                                                    font-size: 13px;
-                                                    background: rgba(0,0,0,0.05);
-                                                    padding: 2px 8px;
-                                                    border-radius: 12px;
-                                                    font-weight: 500;
-                                                ">...</span>
-                                            </div>
-                                            <div class="activity-option" style="
-                                                padding: 14px 18px;
-                                                cursor: pointer;
-                                                display: flex;
-                                                justify-content: space-between;
-                                                align-items: center;
-                                                transition: background 0.2s;
-                                                border-bottom: 1px solid rgba(0,0,0,0.05);
-                                            " onclick="handleActivityClick('${i}', 'callback')">
-                                                <span style="color: #333; font-size: 14px; font-weight: 500;">Callback Calls</span>
-                                                <span class="activity-count" id="callbackCount" style="
-                                                    color: #666;
-                                                    font-size: 13px;
-                                                    background: rgba(0,0,0,0.05);
-                                                    padding: 2px 8px;
-                                                    border-radius: 12px;
-                                                    font-weight: 500;
-                                                ">...</span>
-                                            </div>
-                                            <div class="activity-option" style="
-                                                padding: 14px 18px;
-                                                cursor: pointer;
-                                                display: flex;
-                                                justify-content: space-between;
-                                                align-items: center;
-                                                transition: background 0.2s;
-                                            " onclick="handleActivityClick('${i}', 'interested')">
-                                                <span style="color: #333; font-size: 14px; font-weight: 500;">Interested Calls</span>
-                                                <span class="activity-count" id="interestedCount" style="
-                                                    color: #666;
-                                                    font-size: 13px;
-                                                    background: rgba(0,0,0,0.05);
-                                                    padding: 2px 8px;
-                                                    border-radius: 12px;
-                                                    font-weight: 500;
-                                                ">...</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
                                 
-                                document.body.appendChild(optionsModal);
-                                telecallerModal.style.display = 'none';
-
+                            </div>
+                            <div class="activity-option" style="
+                                padding: 14px 18px;
+                                cursor: pointer;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                transition: background 0.2s;
+                                border-bottom: 1px solid rgba(0,0,0,0.05);
+                                            " onclick="handleActivityClick('${i}', 'unanswered')">
+                                <span style="color: #333; font-size: 14px; font-weight: 500;">Not Lift Calls</span>
+                                <span class="activity-count" id="unansweredCount" style="
+                                    color: #666;
+                                    font-size: 13px;
+                                    background: rgba(0,0,0,0.05);
+                                    padding: 2px 8px;
+                                    border-radius: 12px;
+                                    font-weight: 500;
+                                ">...</span>
+                            </div>
+                            <div class="activity-option" style="
+                                padding: 14px 18px;
+                                cursor: pointer;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                transition: background 0.2s;
+                                border-bottom: 1px solid rgba(0,0,0,0.05);
+                                            " onclick="handleActivityClick('${i}', 'callback')">
+                                <span style="color: #333; font-size: 14px; font-weight: 500;">Callback Calls</span>
+                                <span class="activity-count" id="callbackCount" style="
+                                    color: #666;
+                                    font-size: 13px;
+                                    background: rgba(0,0,0,0.05);
+                                    padding: 2px 8px;
+                                    border-radius: 12px;
+                                    font-weight: 500;
+                                ">...</span>
+                            </div>
+                            <div class="activity-option" style="
+                                padding: 14px 18px;
+                                cursor: pointer;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                transition: background 0.2s;
+                                            " onclick="handleActivityClick('${i}', 'interested')">
+                                <span style="color: #333; font-size: 14px; font-weight: 500;">Interested Calls</span>
+                                <span class="activity-count" id="interestedCount" style="
+                                    color: #666;
+                                    font-size: 13px;
+                                    background: rgba(0,0,0,0.05);
+                                    padding: 2px 8px;
+                                    border-radius: 12px;
+                                    font-weight: 500;
+                                ">...</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(optionsModal);
+                telecallerModal.style.display = 'none';
+                
                                 // Add click handlers for the option buttons
                                 document.getElementById('dialpadBtn').addEventListener('click', () => {
-                                    window.open('dialpad.html', '_blank');
-                                    optionsModal.remove();
-                                    telecallerModal.remove();
-                                });
-
+                        window.open('dialpad.html', '_blank');
+                        optionsModal.remove();
+                        telecallerModal.remove();
+                    });
+                
                                 document.getElementById('clickToCallBtn').addEventListener('click', () => {
-                                    // Set the telecaller ID and navigation flag
-                                    localStorage.setItem('fromSelectOptions', 'true');
-                                    
-                                    // Open click to call in a new window
+                        // Set the telecaller ID and navigation flag
+                        localStorage.setItem('fromSelectOptions', 'true');
+                        
+                        // Open click to call in a new window
                                     openClickToCall(i);
-                                    
+                        
                                     // DON'T remove the popup - just hide it so we can return to it
-                                    optionsModal.style.display = 'none';
+                        optionsModal.style.display = 'none';
                                     // optionsModal.remove(); - REMOVE THIS LINE
                                 });
 
@@ -1485,23 +1523,23 @@
 
                                 // Add event listener with debugging
                                 const myActivityBtn = document.getElementById('myActivityBtn');
-                                if (myActivityBtn) {
+                if (myActivityBtn) {
                                     console.log('Found My Activity button');
-                                    myActivityBtn.addEventListener('click', function(e) {
+                    myActivityBtn.addEventListener('click', function(e) {
                                         console.log('My Activity button clicked');
-                                        e.stopPropagation();
-                                        
+                        e.stopPropagation();
+                        
                                         const dropdown = document.getElementById('activityDropdown');
-                                        if (dropdown) {
-                                            const isVisible = dropdown.style.display === 'none';
-                                            dropdown.style.display = isVisible ? 'block' : 'none';
-                                            
-                                            if (isVisible) {
-                                                // Fetch and update counts when showing dropdown
+                        if (dropdown) {
+                            const isVisible = dropdown.style.display === 'none';
+                            dropdown.style.display = isVisible ? 'block' : 'none';
+                            
+                            if (isVisible) {
+                                // Fetch and update counts when showing dropdown
                                                 updateCallCounts(i); // i is the telecaller ID
-                                            }
-                                        }
-                                    });
+                            }
+                        }
+                    });
                                 } else {
                                     console.error('My Activity button not found');
                                 }
@@ -1536,12 +1574,27 @@
                             }
                         }
                         
+                        // Hide the loading overlay once data is refreshed
+                        const loadingOverlay = document.getElementById('loadingOverlay');
+                        if (loadingOverlay) {
+                            loadingOverlay.style.display = 'none';
+                        }
+                        
                         // Log only if changes were made
                         if (hasChanges) {
                             console.log("Updated telecaller names with fresh data");
                         }
                     })
-                    .catch(error => console.error('Error fetching updated names:', error));
+                    .catch(error => {
+                        console.error('Error fetching updated names:', error);
+                        // Even on error, hide the loading overlay after a moment
+                        setTimeout(() => {
+                            const loadingOverlay = document.getElementById('loadingOverlay');
+                            if (loadingOverlay) {
+                                loadingOverlay.style.display = 'none';
+                            }
+                        }, 500);
+                    });
             });
 
             marketingManagerBtn.addEventListener('click', function() {
