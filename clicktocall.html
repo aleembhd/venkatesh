@@ -1589,6 +1589,10 @@
                 console.log(`Processing call status: ${status} for number: ${currentNumber}`);
                 console.log(`Using telecaller name: ${telecallerName}, ID: ${telecallerId}`);
 
+                // Check if we're in the Interested calls section
+                const isInInterestedSection = document.getElementById('headerTitle')
+                    .textContent.toLowerCase().includes('interested');
+
                 // Format status with proper capitalization
                 let formattedStatus;
                 if (status === 'not interested') {
@@ -1597,7 +1601,88 @@
                     formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
                 }
 
-                // 1. First save the call status data to the telecaller's personal node
+                // Special handling for Interested calls section
+                if (isInInterestedSection) {
+                    // For Interested section, maintain Interested status but add secondary status
+                    const callData = {
+                        number: currentNumber,
+                        status: 'Interested',  // Keep status as Interested
+                        dateTime: getCurrentDateTime(),
+                        duration: '<img src="images/outgoing-calls.png" width="17" height="17" alt="Outgoing Call"> Outgoing',
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        telecallerEmail: telecallerEmail,
+                        source: "clicktocall",
+                        secondaryStatus: formattedStatus,  // Add secondary status
+                        statusbatch: status === 'callback' ? 
+                            '<img src="images/call-back.png" width="17" height="17" alt="Callback"> Callback' :
+                            '<img src="images/not-interested.png" width="17" height="17" alt="Not Interested"> Not Interested'
+                    };
+                    
+                    // Update Firebase but keep in Interested section
+                    const existingRef = db.ref(telecallerName);
+                    const snapshot = await existingRef.orderByChild('number')
+                        .equalTo(currentNumber)
+                        .once('value');
+                        
+                    if (snapshot.exists()) {
+                        snapshot.forEach((childSnapshot) => {
+                            existingRef.child(childSnapshot.key).update(callData);
+                        });
+                    } else {
+                        await existingRef.push(callData);
+                    }
+                    
+                    // Update UI to show new status badge without removing the item
+                    const callItem = document.querySelector(`[data-number="${currentNumber}"]`);
+                    if (callItem) {
+                        // Find the status badge container
+                        const statusContainer = callItem.querySelector('.number-info div:first-child');
+                        if (statusContainer) {
+                            // Check if a status badge already exists
+                            let statusBadge = statusContainer.querySelector('.status-badge');
+                            if (!statusBadge) {
+                                // Create a new status badge if none exists
+                                statusBadge = document.createElement('span');
+                                statusBadge.className = 'status-badge';
+                                statusBadge.style.marginLeft = '8px';
+                                statusBadge.style.padding = '4px 10px';
+                                statusBadge.style.fontSize = '10px';
+                                statusBadge.style.fontWeight = 'bold';
+                                statusBadge.style.borderRadius = '12px';
+                                statusBadge.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                statusBadge.style.display = 'inline-flex';
+                                statusBadge.style.alignItems = 'center';
+                                
+                                if (status === 'callback') {
+                                    statusBadge.style.background = '#e3f2fd';
+                                    statusBadge.style.color = '#0d47a1';
+                                    statusBadge.style.border = '1px solid #bbdefb';
+                                } else {
+                                    statusBadge.style.background = '#eeeeee';
+                                    statusBadge.style.color = '#424242';
+                                    statusBadge.style.border = '1px solid #e0e0e0';
+                                }
+                                
+                                statusContainer.appendChild(statusBadge);
+                            }
+                            
+                            // Update the badge content
+                            statusBadge.innerHTML = callData.statusbatch;
+                        }
+                    }
+                    
+                    // Clear session storage
+                    sessionStorage.removeItem('isAlreadyInterested');
+                    sessionStorage.removeItem('isAlreadyCallback');
+                    sessionStorage.removeItem('activePopup');
+                    sessionStorage.removeItem('currentNumber');
+                    sessionStorage.removeItem('callStartTime');
+                    
+                    showToast('Call status updated successfully');
+                    return; // Exit early to avoid the standard processing below
+                }
+
+                // 1. First save the call status data to the telecaller's personal node (ONLY FOR NON-INTERESTED VIEWS)
                 const callData = {
                     number: currentNumber,
                     status: formattedStatus,
@@ -1880,10 +1965,19 @@
             headerTitle.textContent = `Telecaller ${telecallerId} - Click To Call`;
         }
 
-        // Update the back button to return to index.html
+        // Update the back button to return to previous screen
         document.querySelector('.back-btn').onclick = () => {
-            localStorage.removeItem('telecallerId'); // Clear stored ID
-            window.location.href = 'index.html';
+            const fromSelectOptions = localStorage.getItem('fromSelectOptions');
+            
+            if (fromSelectOptions === 'true') {
+                // If we came from the select options popup, go back there
+                window.close(); // Close current window
+                // The parent window with the select options should still be open
+            } else {
+                // Otherwise use the original behavior
+                localStorage.removeItem('telecallerId');
+                window.location.href = 'index.html';
+            }
         };
 
         // Function to format phone number
@@ -2177,6 +2271,13 @@
                 // Show loading spinner
                 document.getElementById('activityLoadingSpinner').style.display = 'flex';
                 
+                // Add this: Update URL with status parameter without reloading page
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('activity', status);
+                newUrl.searchParams.set('header', `${status.charAt(0).toUpperCase() + status.slice(1)} Calls`);
+                window.history.pushState({}, '', newUrl);
+                
+                // Rest of your existing showActivity code...
                 const telecallerEmail = localStorage.getItem('telecallerEmail');
                 const telecallerName = telecallerEmail.split('@')[0];
                 const db = firebase.database();
@@ -2535,6 +2636,10 @@ JB INFRA
                 console.log(`Processing call status: ${status} for number: ${currentNumber}`);
                 console.log(`Using telecaller name: ${telecallerName}, ID: ${telecallerId}`);
 
+                // Check if we're in the Interested calls section
+                const isInInterestedSection = document.getElementById('headerTitle')
+                    .textContent.toLowerCase().includes('interested');
+
                 // Format status with proper capitalization
                 let formattedStatus;
                 if (status === 'not interested') {
@@ -2543,7 +2648,88 @@ JB INFRA
                     formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
                 }
 
-                // 1. First save the call status data to the telecaller's personal node
+                // Special handling for Interested calls section
+                if (isInInterestedSection) {
+                    // For Interested section, maintain Interested status but add secondary status
+                    const callData = {
+                        number: currentNumber,
+                        status: 'Interested',  // Keep status as Interested
+                        dateTime: getCurrentDateTime(),
+                        duration: '<img src="images/outgoing-calls.png" width="17" height="17" alt="Outgoing Call"> Outgoing',
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        telecallerEmail: telecallerEmail,
+                        source: "clicktocall",
+                        secondaryStatus: formattedStatus,  // Add secondary status
+                        statusbatch: status === 'callback' ? 
+                            '<img src="images/call-back.png" width="17" height="17" alt="Callback"> Callback' :
+                            '<img src="images/not-interested.png" width="17" height="17" alt="Not Interested"> Not Interested'
+                    };
+                    
+                    // Update Firebase but keep in Interested section
+                    const existingRef = db.ref(telecallerName);
+                    const snapshot = await existingRef.orderByChild('number')
+                        .equalTo(currentNumber)
+                        .once('value');
+                        
+                    if (snapshot.exists()) {
+                        snapshot.forEach((childSnapshot) => {
+                            existingRef.child(childSnapshot.key).update(callData);
+                        });
+                    } else {
+                        await existingRef.push(callData);
+                    }
+                    
+                    // Update UI to show new status badge without removing the item
+                    const callItem = document.querySelector(`[data-number="${currentNumber}"]`);
+                    if (callItem) {
+                        // Find the status badge container
+                        const statusContainer = callItem.querySelector('.number-info div:first-child');
+                        if (statusContainer) {
+                            // Check if a status badge already exists
+                            let statusBadge = statusContainer.querySelector('.status-badge');
+                            if (!statusBadge) {
+                                // Create a new status badge if none exists
+                                statusBadge = document.createElement('span');
+                                statusBadge.className = 'status-badge';
+                                statusBadge.style.marginLeft = '8px';
+                                statusBadge.style.padding = '4px 10px';
+                                statusBadge.style.fontSize = '10px';
+                                statusBadge.style.fontWeight = 'bold';
+                                statusBadge.style.borderRadius = '12px';
+                                statusBadge.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                statusBadge.style.display = 'inline-flex';
+                                statusBadge.style.alignItems = 'center';
+                                
+                                if (status === 'callback') {
+                                    statusBadge.style.background = '#e3f2fd';
+                                    statusBadge.style.color = '#0d47a1';
+                                    statusBadge.style.border = '1px solid #bbdefb';
+                                } else {
+                                    statusBadge.style.background = '#eeeeee';
+                                    statusBadge.style.color = '#424242';
+                                    statusBadge.style.border = '1px solid #e0e0e0';
+                                }
+                                
+                                statusContainer.appendChild(statusBadge);
+                            }
+                            
+                            // Update the badge content
+                            statusBadge.innerHTML = callData.statusbatch;
+                        }
+                    }
+                    
+                    // Clear session storage
+                    sessionStorage.removeItem('isAlreadyInterested');
+                    sessionStorage.removeItem('isAlreadyCallback');
+                    sessionStorage.removeItem('activePopup');
+                    sessionStorage.removeItem('currentNumber');
+                    sessionStorage.removeItem('callStartTime');
+                    
+                    showToast('Call status updated successfully');
+                    return; // Exit early to avoid the standard processing below
+                }
+
+                // 1. First save the call status data to the telecaller's personal node (ONLY FOR NON-INTERESTED VIEWS)
                 const callData = {
                     number: currentNumber,
                     status: formattedStatus,
