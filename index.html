@@ -3632,9 +3632,13 @@
                 });
         }
 
+        // Function to handle activity click - modify the existing function
         function handleActivityClick(telecallerId, type) {
             // Store the telecaller ID
             localStorage.setItem('currentTelecallerId', telecallerId);
+            
+            // Add this line to set our navigation flag
+            localStorage.setItem('fromSelectOptions', 'true');
             
             if (type === 'all') {
                 // Just open click to call without any specific type
@@ -3655,11 +3659,14 @@
                 window.open(`clicktocall.html?activity=${type}&header=${capitalizedType} Calls (${count})`, '_blank');
             }
             
-            // Close the options modal
+            // Don't close the options modal so we can go back to it
+            // Comment out the modal removal
+            /*
             const optionsModal = document.querySelector('.modal');
             if (optionsModal) {
                 optionsModal.remove();
             }
+            */
         }
 
         // Add hover effect for activity options
