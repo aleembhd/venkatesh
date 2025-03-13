@@ -1247,16 +1247,19 @@
                 const activityType = urlParams.get('activity');
                 const headerText = urlParams.get('header');
 
-                // If we have activity parameters, ONLY show activity view
-                if (activityType && headerText) {
-                    console.log('Showing activity view:', activityType);
+                // NEW CODE: Check localStorage for saved activity
+                const savedActivity = localStorage.getItem('currentActivity');
+                
+                // If we have activity parameters or saved activity, ONLY show activity view
+                if (activityType || savedActivity) {
+                    console.log('Showing activity view:', activityType || savedActivity);
                     
                     // Set header immediately
                     const headerTitle = document.getElementById('headerTitle');
-                    headerTitle.textContent = headerText;
+                    headerTitle.textContent = headerText || `${(savedActivity || '').charAt(0).toUpperCase() + (savedActivity || '').slice(1)} Calls`;
 
                     // Show only the specific activity calls
-                    await showActivity(activityType);
+                    await showActivity(activityType || savedActivity);
 
                     // Hide loading spinner
                     document.getElementById('pageLoadingSpinner').style.display = 'none';
@@ -2268,16 +2271,16 @@
 
         async function showActivity(status) {
             try {
+                // Save current activity unless it's the main calling list
+                if (status !== 'uploaddata') {
+                    localStorage.setItem('currentActivity', status);
+                } else {
+                    localStorage.removeItem('currentActivity');
+                }
+
                 // Show loading spinner
                 document.getElementById('activityLoadingSpinner').style.display = 'flex';
                 
-                // Add this: Update URL with status parameter without reloading page
-                const newUrl = new URL(window.location);
-                newUrl.searchParams.set('activity', status);
-                newUrl.searchParams.set('header', `${status.charAt(0).toUpperCase() + status.slice(1)} Calls`);
-                window.history.pushState({}, '', newUrl);
-                
-                // Rest of your existing showActivity code...
                 const telecallerEmail = localStorage.getItem('telecallerEmail');
                 const telecallerName = telecallerEmail.split('@')[0];
                 const db = firebase.database();
@@ -2851,6 +2854,8 @@ JB INFRA
 
         // Update the reset function
         document.querySelector('.activity-option').onclick = function() {
+            // Clear the saved activity
+            localStorage.removeItem('currentActivity');
             const headerTitle = document.getElementById('headerTitle');
             headerTitle.textContent = 'Click To Call (0)';
             location.reload();
@@ -2986,6 +2991,43 @@ JB INFRA
                 <button class="popup-button-2 not-interested-button" onclick="handleCallStatus('not interested'); handleCallbackItemRemoval(currentNumber, 'not interested')">Not Interested</button>
             `;
         }
+
+        // Function to open Click to Call for a specific telecaller
+        function openClickToCall(telecallerId) {
+            // Store the telecaller ID
+            localStorage.setItem('currentTelecallerId', telecallerId);
+            
+            // Add this line to set the navigation flag
+            localStorage.setItem('fromSelectOptions', 'true');
+            
+            // Open clicktocall.html
+            window.open('clicktocall.html', '_blank');
+        }
+
+        // Update the back-btn click handler to properly handle returning to options
+        document.addEventListener('DOMContentLoaded', function() {
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function() {
+                    console.log("Back button clicked");
+                    const fromSelectOptions = localStorage.getItem('fromSelectOptions');
+                    console.log("fromSelectOptions flag:", fromSelectOptions);
+                    
+                    if (fromSelectOptions === 'true') {
+                        console.log("Closing window to return to options");
+                        // Clear the flag before closing
+                        localStorage.removeItem('fromSelectOptions');
+                        window.close();
+                    } else {
+                        console.log("Navigating to index.html");
+                        localStorage.removeItem('currentTelecallerId');
+                        window.location.href = 'index.html';
+                    }
+                });
+            } else {
+                console.error("Back button not found in the DOM");
+            }
+        });
     </script>
 </body>
 </html> 
