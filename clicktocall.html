@@ -1479,50 +1479,71 @@
                         // If already callback or in callback section, keep it that way
                         const callData = {
                             number: currentNumber,
-                            status: 'Callback',  // Keep as Callback
+                            status: 'Callback',    // Keep as Callback
                             dateTime: getCurrentDateTime(),
                             duration: '<img src="images/missed-calls.png" width="17" height="17" alt="Missed Call"> Missed',
                             timestamp: firebase.database.ServerValue.TIMESTAMP,
                             telecallerEmail: telecallerEmail,
                             source: "clicktocall",
-                            statusbatch: '<img src="images/missed-calls.png" width="17" height="17" alt="Missed Call"> Not Lift'  // Add statusbatch here
+                            statusbatch: '<img src="images/missed-calls.png" width="17" height="17" alt="Missed Call"> Not Lift'
                         };
-                        
-                        // Update Firebase
-                        if (snapshot.exists()) {
-                            snapshot.forEach((childSnapshot) => {
-                                existingRef.child(childSnapshot.key).update(callData);
-                                return true;
-                            });
-                        } else {
-                            await existingRef.push(callData);
-                        }
-                        
-                        // Update UI with status badge if in callback section
-                        if (isInCallbackSection) {
-                            const callItem = document.querySelector(`[data-number="${currentNumber}"]`);
-                            if (callItem) {
-                                const statusElement = callItem.querySelector('.number-info div:first-child');
-                                if (statusElement) {
-                                    // Check if a status span already exists
-                                    let statusSpan = statusElement.querySelector('span:nth-child(2)');
-                                    if (!statusSpan) {
-                                        // Create the status span if it doesn't exist
-                                        statusSpan = document.createElement('span');
-                                        statusSpan.style.padding = '4px 7px';
-                                        statusSpan.style.fontSize = '10px';
-                                        statusSpan.style.color = '#c62828';  // Red for missed call
-                                        statusSpan.style.fontWeight = 'bold';
-                                        statusSpan.style.marginLeft = '8px';
-                                        statusElement.appendChild(statusSpan);
+
+                        try {
+                            const existingRef = db.ref(telecallerName);
+                            const snapshot = await existingRef.orderByChild('number')
+                                .equalTo(currentNumber)
+                                .once('value');
+                            
+                            if (snapshot.exists()) {
+                                // Update existing record
+                                snapshot.forEach((childSnapshot) => {
+                                    existingRef.child(childSnapshot.key).update(callData);
+                                });
+
+                                // Add this new code for UI update
+                                const callItem = document.querySelector(`[data-number="${currentNumber}"]`);
+                                if (callItem) {
+                                    let statusContainer = callItem.querySelector('.number-info div:first-child');
+                                    if (!statusContainer) {
+                                        statusContainer = document.createElement('div');
+                                        statusContainer.style.textAlign = 'left';
+                                        statusContainer.style.marginBottom = '5px';
+                                        statusContainer.style.display = 'flex';
+                                        statusContainer.style.alignItems = 'center';
+                                        statusContainer.style.justifyContent = 'flex-start';
+                                        statusContainer.style.width = '100%';
+                                        callItem.querySelector('.number-info').insertBefore(statusContainer, callItem.querySelector('.number-info').firstChild);
                                     }
-                                    // Update the span content
-                                    statusSpan.innerHTML = '<img src="images/missed-calls.png" width="17" height="17" alt="Missed Call" style="vertical-align: middle;"> Not Lift';
+
+                                    let statusBadge = statusContainer.querySelector('.status-badge');
+                                    if (!statusBadge) {
+                                        statusBadge = document.createElement('span');
+                                        statusBadge.className = 'status-badge';
+                                        statusBadge.style.marginLeft = '8px';
+                                        statusBadge.style.padding = '4px 10px';
+                                        statusBadge.style.fontSize = '10px';
+                                        statusBadge.style.fontWeight = 'bold';
+                                        statusBadge.style.borderRadius = '12px';
+                                        statusBadge.style.background = '#ffebee';
+                                        statusBadge.style.color = '#c62828';
+                                        statusBadge.style.border = '1px solid #ffcdd2';
+                                        statusBadge.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                        statusBadge.style.display = 'inline-flex';
+                                        statusBadge.style.alignItems = 'center';
+                                        statusContainer.appendChild(statusBadge);
+                                    }
+
+                                    statusBadge.innerHTML = callData.statusbatch;
                                 }
+                            } else {
+                                // Create new record
+                                await existingRef.push(callData);
                             }
+
+                            console.log('Saved callback data:', callData);
+                        } catch (error) {
+                            console.error('Error saving callback data:', error);
                         }
-                        
-                        showToast('Call updated successfully');
                     } else {
                         // Normal flow for unanswered status
                         await handleCallStatus('unanswered');
@@ -1652,6 +1673,9 @@
                                 statusBadge.style.fontSize = '10px';
                                 statusBadge.style.fontWeight = 'bold';
                                 statusBadge.style.borderRadius = '12px';
+                                statusBadge.style.background = '#ffebee';
+                                statusBadge.style.color = '#c62828';
+                                statusBadge.style.border = '1px solid #ffcdd2';
                                 statusBadge.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                                 statusBadge.style.display = 'inline-flex';
                                 statusBadge.style.alignItems = 'center';
@@ -1697,10 +1721,6 @@
                     telecallerEmail: telecallerEmail,
                     source: "clicktocall"
                 };
-                
-                if (status === 'callback') {
-                    callData.statusbatch = '<img src="images/call-back.png" width="17" height="17" alt="Callback"> Callback';
-                }
                 
                 // Update or create call record for this telecaller
                 const existingRef = db.ref(telecallerName);
@@ -2699,6 +2719,9 @@ JB INFRA
                                 statusBadge.style.fontSize = '10px';
                                 statusBadge.style.fontWeight = 'bold';
                                 statusBadge.style.borderRadius = '12px';
+                                statusBadge.style.background = '#ffebee';
+                                statusBadge.style.color = '#c62828';
+                                statusBadge.style.border = '1px solid #ffcdd2';
                                 statusBadge.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                                 statusBadge.style.display = 'inline-flex';
                                 statusBadge.style.alignItems = 'center';
@@ -2744,10 +2767,6 @@ JB INFRA
                     telecallerEmail: telecallerEmail,
                     source: "clicktocall"
                 };
-                
-                if (status === 'callback') {
-                    callData.statusbatch = '<img src="images/call-back.png" width="17" height="17" alt="Callback"> Callback';
-                }
                 
                 // Update or create call record for this telecaller
                 const existingRef = db.ref(telecallerName);
