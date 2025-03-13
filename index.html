@@ -1284,12 +1284,15 @@
             let currentRole = '';
 
             telecallerBtn.addEventListener('click', function() {
-                const excludedButtons = [0,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; // Add any numbers you want to exclude here, e.g., [7, 3, 5]
+                const excludedButtons = [0,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; // Add any numbers you want to exclude here
                 const telecallerModal = document.createElement('div');
                 telecallerModal.className = 'modal';
                 telecallerModal.style.display = 'block';
                 
-                // Initially show default names
+                // Use cachedNames to immediately populate the UI without waiting
+                const names = cachedNames || {};
+                
+                // Initially show names using cached data
                 telecallerModal.innerHTML = `
                     ${editStyles}
                     <div class="modal-content">
@@ -1302,11 +1305,16 @@
                                 const number = i;
                                 // Skip any excluded button numbers
                                 if (excludedButtons.includes(number)) return '';
+                                
+                                // Get name from cache immediately
+                                const nameKey = `telecaller${getNumberWord(number)}`;
+                                const displayName = names[nameKey] || `Telecaller ${number}`;
+                                
                                 return `
                                     <div class="manager-button-container">
                                         <button id="telecaller${number}Btn" class="manager-btn">
                                             <span class="button-number">${number}.</span>
-                                            <span id="telecallerName${number}">Telecaller ${number}</span>
+                                            <span id="telecallerName${number}">${displayName}</span>
                                         </button>
                                         <span class="edit-icon" id="editTelecaller${number}">
                                             <img src="images/editicon.png" alt="Edit" style="width: 33px; height: 33px;">
@@ -1321,7 +1329,7 @@
                 document.body.appendChild(telecallerModal);
 
                 // Add click handlers only for non-excluded buttons
-                for(let i = 0; i <= 15; i++) { // Changed to 15 to include telecallers 11-15
+                for(let i = 0; i <= 15; i++) {
                     if (!excludedButtons.includes(i)) {
                         const button = document.getElementById(`telecaller${i}Btn`);
                         if (button) {
@@ -1506,41 +1514,34 @@
                     telecallerModal.remove()
                 );
 
-                // Real-time listener for name updates (excluding excluded buttons)
-                firebase.database().ref('telecallerNames').on('value', (snapshot) => {
-                    const names = snapshot.val() || {};
-                    // Update each name span with the Firebase data
-                    for(let i = 0; i <= 15; i++) {
-                        if (!excludedButtons.includes(i)) {
-                            const nameSpan = document.getElementById(`telecallerName${i}`);
-                            if (nameSpan) {
-                                const nameKey = `telecaller${getNumberWord(i)}`; // e.g., telecallerOne, telecallerTwo
-                                if (names[nameKey]) {
-                                    nameSpan.textContent = names[nameKey];
+                // After showing UI with cached data, quietly refresh the data if needed
+                firebase.database().ref('telecallerNames').once('value')
+                    .then(snapshot => {
+                        const freshNames = snapshot.val() || {};
+                        // Update cachedNames for future use
+                        cachedNames = freshNames;
+                        
+                        // Only update UI if there are differences
+                        let hasChanges = false;
+                        for(let i = 0; i <= 15; i++) {
+                            if (!excludedButtons.includes(i)) {
+                                const nameSpan = document.getElementById(`telecallerName${i}`);
+                                if (nameSpan) {
+                                    const nameKey = `telecaller${getNumberWord(i)}`;
+                                    if (freshNames[nameKey] && nameSpan.textContent !== freshNames[nameKey]) {
+                                        nameSpan.textContent = freshNames[nameKey];
+                                        hasChanges = true;
+                                    }
                                 }
                             }
                         }
-                    }
-                });
-
-                // Find this section in your code where the options modal is created and add these event listeners
-                // AFTER document.body.appendChild(optionsModal);
-
-                document.body.appendChild(optionsModal);
-                telecallerModal.style.display = 'none';
-
-                // Add a click handler to close the dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    const dropdown = document.getElementById('activityDropdown');
-                    if (dropdown && !e.target.closest('#myActivityBtn') && !e.target.closest('#activityDropdown')) {
-                        dropdown.style.display = 'none';
-                    }
-                });
-
-                // Then continue with your other click handlers
-                document.getElementById('dialpadBtn').addEventListener('click', () => {
-                    // ...existing code...
-                });
+                        
+                        // Log only if changes were made
+                        if (hasChanges) {
+                            console.log("Updated telecaller names with fresh data");
+                        }
+                    })
+                    .catch(error => console.error('Error fetching updated names:', error));
             });
 
             marketingManagerBtn.addEventListener('click', function() {
