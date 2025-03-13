@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Today's Calls Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        .clear-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .clear-btn:hover {
+    background-color: #c82333;
+  }
+  
+  .card-footer {
+    text-align: center;
+    padding: 5px;
+  }
+      /* Add these styles to your existing styles */
+      .flatpickr-calendar {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+      }
+
+      .calendar-container {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+      }
+
+      .calendar-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .submit-btn {
+        margin-top: 10px;
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .submit-btn:hover {
+        background-color: #0056b3;
+      }
+
+      /* Add or update these styles */
+      .calendar-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .submit-btn {
+        margin-top: 10px;
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        width: 100%; /* Make the button full width */
+      }
+
+      .submit-btn:hover {
+        background-color: #0056b3;
+      }
+
+      /* Ensure the submit button is inside the calendar */
+      .flatpickr-calendar {
+        padding-bottom: 50px; /* Add space for the submit button */
+      }
+
+      .whatsapp-btn,
+      .call-btn {
+        padding: 5px 10px;
+        margin: 2px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+
+      .whatsapp-btn {
+        background-color: #25d366;
+        color: white;
+      }
+
+      .call-btn {
+        background-color: #007bff;
+        color: white;
+      }
+
+      /* Add this to your existing styles */
+      .dustbin-icon {
+        transition: transform 0.2s ease-in-out;
+      }
+      .dustbin-icon:hover {
+        transform: scale(1.2);
+      }
+
+      .card-footer {
+        padding: 15px;
+      }
+
+      .button-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .action-btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        text-align: center;
+        transition: background-color 0.3s ease;
+      }
+
+      #printBtn {
+        background-color: #007bff;
+        color: white;
+      }
+
+      #printBtn:hover {
+        background-color: #0056b3;
+      }
+
+      #clearAllBtn {
+        background-color: #dc3545;
+        color: white;
+      }
+
+      #clearAllBtn:hover {
+        background-color: #c82333;
+      }
+
+      .calendar-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .calendar-btn {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        width: 100%;
+        transition: background-color 0.3s ease;
+      }
+
+      .submit-btn {
+        background-color: #28a745;
+        color: white;
+      }
+
+      .submit-btn:hover {
+        background-color: #218838;
+      }
+
+      .close-btn {
+        background-color: #dc3545;
+        color: white;
+      }
+
+      .close-btn:hover {
+        background-color: #c82333;
+      }
+
+      /* Add these styles to the <style> section */
+      .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      /* Color-specific spinners */
+      .number.green .loading-spinner {
+        border-top-color: #28a745;
+      }
+      
+      .number.red .loading-spinner {
+        border-top-color: #dc3545;
+      }
+      
+      .number.orange .loading-spinner {
+        border-top-color: #fd7e14;
+      }
+      
+      .number.blue .loading-spinner {
+        border-top-color: #007bff;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .number {
+        min-height: 24px; /* Prevent layout shift */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 class="dashboard-title">Today's Calls Dashboard</h1>
+        <div class="header-buttons">
+          <button class="btn btn-dark" id="backBtn">Back</button>
+          <button class="btn btn-dark" id="calendarBtn">Calendar</button>
+          <!-- <button class="btn" id="settingsBtn">⚙️</button> -->
+        </div>
+      </div>
+
+      <div id="currentDate" class="current-date"></div>
+
+      <div class="card">
+        <h2>Today's Call Summary</h2>
+        <div class="call-summary">
+          <div class="summary-row firstrow">
+            <div class="summary-card toatalcalls" id="totalCallsCard">
+              <div class="number" id="totalCallsSummary">
+                <div class="loading-spinner"></div>
+              </div>
+              <div>Total Calls</div>
+            </div>
+          </div>
+          <div class="summary-row secondrow">
+            <div class="summary-card answredcalls notinterestedcard">
+              <div class="number green" id="notInterestedCallsSummary">
+                <div class="loading-spinner"></div>
+              </div>
+              <div>Not Interested</div>
+            </div>
+            <div class="summary-card unanswredcalls">
+              <div class="number red" id="unansweredCallsSummary">
+                <div class="loading-spinner"></div>
+              </div>
+              <div>Unanswered</div>
+            </div>
+          </div>
+          <div class="summary-row thirdrow">
+            <div
+              class="summary-card callbackcalls callbackcard"
+              id="callbackCard"
+            >
+              <div class="number orange" id="callBackCallsSummary">
+                <div class="loading-spinner"></div>
+              </div>
+              <div>Callback</div>
+            </div>
+            <div
+              class="summary-card intreastedcalls interestedcard"
+              id="interestedCard"
+            >
+              <div class="number blue" id="interestedCallsSummary">
+                <div class="loading-spinner"></div>
+              </div>
+              <div>Interested</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="card call-details-card"
+        id="callDetailsCard"
+        style="display: none"
+      >
+        <div class="card-header">
+          <h2>Today's Call Details</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="call-details-table">
+            <thead>
+              <tr>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Calls</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="callDetailsBody">
+              <!-- Call details will be populated here by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          <div class="button-container">
+            <button id="printBtn" class="btn action-btn">Print</button>
+            <button
+              id="clearAllBtn"
+              class="btn action-btn"
+              style="display: none"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-container" id="calendarContainer">
+      <div class="calendar-content">
+        <div id="calendar"></div>
+        <div class="calendar-buttons">
+          <button id="submitDate" class="calendar-btn submit-btn">
+            Submit
+          </button>
+          <button id="closeCalendar" class="calendar-btn close-btn">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script>
+      // Initialize Firebase with your config
+      const firebaseConfig = {
+        apiKey: "AIzaSyCLrrkbXcW-exG8_n4kOEmzA-SETMWqo-0",
+        authDomain: "feedbackapp-5904d.firebaseapp.com",
+        databaseURL: "https://feedbackapp-5904d-default-rtdb.firebaseio.com",
+        projectId: "feedbackapp-5904d",
+        storageBucket: "feedbackapp-5904d.firebasestorage.app",
+        messagingSenderId: "620175464767",
+        appId: "1:620175464767:web:8054286a27a26210619b8a",
+        measurementId: "G-QH8JN7TE0J"
+      };
+
+      // Initialize Firebase
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
+      const database = firebase.database();
+      const auth = firebase.auth();
+
+      // Add this variable at the top level to store selected date
+      let selectedCalendarDate = new Date();
+
+      // Modify the calendar submit button handler
+      document.getElementById('submitDate').addEventListener('click', function() {
+          if (selectedDate) {
+              selectedCalendarDate = selectedDate; // Store the selected date
+              fetchDateCalls(selectedDate);
+              calendarContainer.style.display = 'none';
+          } else {
+              alert('Please select a date');
+          }
+      });
+
+      // Update clearCallsByStatus to use the selected date
+      window.clearCallsByStatus = async function(status) {
+          if (confirm(`Are you sure you want to clear all ${status} call details for ${selectedCalendarDate.toLocaleDateString()}?`)) {
+              try {
+                  const selectedTelecaller = localStorage.getItem('currentTelecaller');
+                  if (!selectedTelecaller) {
+                      console.error('No telecaller information found');
+                      return;
+                  }
+
+                  const telecallerName = selectedTelecaller.split('@')[0];
+                  const callsRef = database.ref(telecallerName);
+                  
+                  // Use the selected date for range
+                  const startOfDay = new Date(selectedCalendarDate).setHours(0, 0, 0, 0);
+                  const endOfDay = new Date(selectedCalendarDate).setHours(23, 59, 59, 999);
+
+                  // Fetch calls for selected date
+                  const snapshot = await callsRef
+                      .orderByChild('timestamp')
+                      .startAt(startOfDay)
+                      .endAt(endOfDay)
+                      .once('value');
+
+                  const updates = {};
+                  let deletedCount = 0;
+
+                  snapshot.forEach(childSnapshot => {
+                      const call = childSnapshot.val();
+                      if ((status === 'Total' || call.status === status) && 
+                          call.telecallerEmail === selectedTelecaller) {
+                          updates[childSnapshot.key] = null;
+                          deletedCount++;
+                      }
+                  });
+
+                  if (deletedCount === 0) {
+                      alert(`No ${status} calls found to clear for ${selectedCalendarDate.toLocaleDateString()}`);
+                      return;
+                  }
+
+                  // Batch delete operation
+                  await callsRef.update(updates);
+
+                  // Update local data
+                  window.todayCalls = window.todayCalls.filter(call => {
+                      return status === 'Total' ? false : call.status !== status;
+                  });
+
+                  // Update UI elements immediately
+                  const summary = {
+                      total: window.todayCalls.length,
+                      interested: window.todayCalls.filter(call => call.status === 'Interested').length,
+                      notInterested: window.todayCalls.filter(call => call.status === 'Not Interested').length,
+                      callback: window.todayCalls.filter(call => call.status === 'Callback').length,
+                      unanswered: window.todayCalls.filter(call => call.status === 'Unanswered').length
+                  };
+
+                  // Update UI
+                  document.getElementById('totalCallsSummary').textContent = summary.total;
+                  document.getElementById('interestedCallsSummary').textContent = summary.interested;
+                  document.getElementById('notInterestedCallsSummary').textContent = summary.notInterested;
+                  document.getElementById('callBackCallsSummary').textContent = summary.callback;
+                  document.getElementById('unansweredCallsSummary').textContent = summary.unanswered;
+
+                  // Hide the call details card
+                  const callDetailsCard = document.getElementById('callDetailsCard');
+                  if (callDetailsCard) {
+                      callDetailsCard.style.display = 'none';
+                  }
+
+                  alert(`Successfully cleared ${deletedCount} ${status} calls for ${selectedCalendarDate.toLocaleDateString()}`);
+
+              } catch (error) {
+                  console.error('Error clearing calls:', error);
+                  alert('Failed to clear calls. Please try again.');
+              }
+          }
+      };
+
+      // Then continue with preloadTodayData and other functions
+      function preloadTodayData() {
+        const selectedTelecaller = localStorage.getItem('currentTelecaller');
+        if (!selectedTelecaller) {
+            console.error('No telecaller information found');
+            return;
+        }
+        
+        const telecallerName = selectedTelecaller.split('@')[0];
+        
+        // Get today's date range
+        const today = new Date();
+        const startOfDay = today.setHours(0, 0, 0, 0);
+        const endOfDay = today.setHours(23, 59, 59, 999);
+        
+        // Reference to Firebase
+        const dbRef = firebase.database().ref(telecallerName);
+        
+        // Fetch today's data immediately using once()
+        dbRef.orderByChild('timestamp')
+            .startAt(startOfDay)
+            .endAt(endOfDay)
+            .once('value')
+            .then(snapshot => {
+                const todayCalls = [];
+                snapshot.forEach(childSnapshot => {
+                    const call = childSnapshot.val();
+                    if (call.telecallerEmail === selectedTelecaller) {
+                        todayCalls.push({
+                            ...call,
+                            key: childSnapshot.key
+                        });
+                    }
+                });
+
+                // Store data globally
+                window.todayCalls = todayCalls;
+
+                // Pre-calculate summary
+                const summary = {
+                    total: todayCalls.length,
+                    interested: todayCalls.filter(call => call.status === 'Interested').length,
+                    notInterested: todayCalls.filter(call => call.status === 'Not Interested').length,
+                    callback: todayCalls.filter(call => call.status === 'Callback').length,
+                    unanswered: todayCalls.filter(call => call.status === 'Unanswered').length
+                };
+
+                // Update UI immediately
+                document.getElementById('totalCallsSummary').textContent = summary.total;
+                document.getElementById('interestedCallsSummary').textContent = summary.interested;
+                document.getElementById('notInterestedCallsSummary').textContent = summary.notInterested;
+                document.getElementById('callBackCallsSummary').textContent = summary.callback;
+                document.getElementById('unansweredCallsSummary').textContent = summary.unanswered;
+
+                // Set current date display
+                document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            })
+            .catch(error => {
+                console.error('Error loading today\'s data:', error);
+            });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Function to get the telecaller email based on admin email
+        function getTelecallerEmail(adminEmail) {
+          const adminNumber = adminEmail.match(/\d+/)[0];
+          return `telecaller${adminNumber}@gmail.com`;
+        }
+
+        function updateTodayDashboard(todayCalls) {
+          console.log("Updating dashboard with calls:", todayCalls);
+
+          // Make sure we're working with the details array
+          const calls = todayCalls.details || todayCalls;
+
+          // Update summary numbers
+          const totalCalls = calls.length;
+          const notInterestedCalls = calls.filter(
+            (call) => call.status === "Not Interested"
+          ).length;
+          const unansweredCalls = calls.filter(
+            (call) => call.status === "Unanswered"
+          ).length;
+          const callbackCalls = calls.filter(
+            (call) => call.status === "Callback"
+          ).length;
+          const interestedCalls = calls.filter(
+            (call) => call.status === "Interested"
+          ).length;
+
+          // Update summary cards
+          document.getElementById("totalCallsSummary").textContent = totalCalls;
+          document.getElementById("notInterestedCallsSummary").textContent =
+            notInterestedCalls;
+          document.getElementById("unansweredCallsSummary").textContent =
+            unansweredCalls;
+          document.getElementById("callBackCallsSummary").textContent =
+            callbackCalls;
+          document.getElementById("interestedCallsSummary").textContent =
+            interestedCalls;
+
+          // Store calls for later use without showing them
+          window.todayCalls = calls;
+
+          // Hide the call details card if it's visible
+          const callDetailsCard = document.getElementById("callDetailsCard");
+          if (callDetailsCard) {
+            callDetailsCard.style.display = "none";
+          }
+        }
+
+        // Modify the addClickListener function
+        const addClickListener = (id, status) => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.addEventListener("click", () => toggleCallDetails(status));
+          } else {
+            console.error(`Element with id '${id}' not found`);
+          }
+        };
+
+        addClickListener("totalCallsCard", "Total");
+        addClickListener("notInterestedCallsSummary", "Not Interested");
+        addClickListener("unansweredCallsSummary", "Unanswered");
+        addClickListener("callbackCard", "Callback");
+        addClickListener("interestedCard", "Interested");
+
+        // Add a variable to keep track of the currently displayed status
+        let currentDisplayedStatus = null;
+
+        // Function to toggle call details
+        function toggleCallDetails(status) {
+          const callDetailsCard = document.getElementById("callDetailsCard");
+
+          if (currentDisplayedStatus === status) {
+            // If the same status is clicked again, hide the details
+            callDetailsCard.style.display = "none";
+            currentDisplayedStatus = null;
+          } else {
+            // Show details for the new status
+            showCallDetails(status);
+            currentDisplayedStatus = status;
+          }
+        }
+
+        // Function to show call details
+        function showCallDetails(status) {
+          const callDetailsBody = document.getElementById("callDetailsBody");
+          callDetailsBody.innerHTML = "";
+
+          let filteredCalls = window.todayCalls || [];
+          if (status !== "Total") {
+            filteredCalls = filteredCalls.filter(
+              (call) => call.status === status
+            );
+          }
+
+          // Sort calls by timestamp in descending order
+          filteredCalls.sort((a, b) => b.timestamp - a.timestamp);
+
+          // Define status colors and styles
+          const statusStyles = {
+            Interested:
+              "background-color: #28a745; color: white; padding: 3px 8px; border-radius: 12px;",
+            "Not Interested":
+              "background-color: #dc3545; color: white; padding: 3px 8px; border-radius: 12px;",
+            Callback:
+              "background-color: #007bff; color: white; padding: 3px 8px; border-radius: 12px;",
+            Unanswered:
+              "background-color: #ffc107; color: black; padding: 3px 8px; border-radius: 12px;",
+            "Not Lift":
+              "background-color: #6c757d; color: white; padding: 3px 8px; border-radius: 12px;",
+          };
+
+          filteredCalls.forEach((call) => {
+            const row = document.createElement("tr");
+            const callDate = new Date(call.timestamp);
+            const date = callDate.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "2-digit",
+            });
+            const time = callDate.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            });
+
+            // Extract the last 10 digits of the phone number
+            const phoneNumber = call.number.replace(/\D/g, "").slice(-10);
+
+            // Add dustbin icon only for Interested calls when viewing Interested Call Details
+            const dustbinIcon =
+              status === "Interested" && call.status === "Interested"
+                ? `<img src="images/dustbin.png" alt="Delete" class="dustbin-icon" data-number="${phoneNumber}" style="width: 24px; height: 24px; cursor: pointer; margin-right: 5px; vertical-align: middle;">`
+                : "";
+
+            row.innerHTML = `
+                        <td>${dustbinIcon}${call.number}</td>
+                        <td><span style="${statusStyles[call.status]}">${
+              call.status
+            }</span></td>
+                        <td>${call.duration || "N/A"}</td>
+                        <td>${date}</td>
+                        <td>${time}</td>
+                        ${
+                          (status === "Total" &&
+                            (call.status === "Callback" ||
+                              call.status === "Interested")) ||
+                          status === "Callback" ||
+                          status === "Interested"
+                            ? `
+                        <td>
+                            <button class="whatsapp-btn" data-number="91${phoneNumber}">WhatsApp</button>
+                            <button class="call-btn" data-number="${phoneNumber}">Call</button>
+                        </td>
+                        `
+                            : "<td></td>"
+                        }
+                    `;
+            callDetailsBody.appendChild(row);
+          });
+
+          const callDetailsCard = document.getElementById("callDetailsCard");
+          callDetailsCard.style.display = "block";
+          callDetailsCard.setAttribute("data-status", status);
+          document.querySelector(".call-details-card h2").textContent = `${status} Call Details`;
+
+          // Setup clear button
+          const clearAllBtn = document.getElementById('clearAllBtn');
+          if (clearAllBtn) {
+            if (status === 'Interested') {
+                clearAllBtn.style.display = 'none';
+            } else {
+                clearAllBtn.style.display = 'block';
+                
+                // Remove any existing listeners to prevent duplicates
+                const newBtn = clearAllBtn.cloneNode(true);
+                clearAllBtn.parentNode.replaceChild(newBtn, clearAllBtn);
+                
+                // Set the status attribute
+                newBtn.setAttribute('data-status', status);
+                
+                newBtn.addEventListener('click', function() {
+                    const statusToDelete = this.getAttribute('data-status');
+                    clearCallsByStatus(statusToDelete);
+                });
+            }
+          }
+
+          // Add event listeners for WhatsApp and Call buttons
+          const whatsappButtons = document.querySelectorAll(".whatsapp-btn");
+          const callButtons = document.querySelectorAll(".call-btn");
+
+          whatsappButtons.forEach((button) => {
+            button.addEventListener("click", function () {
+              const phoneNumber = this.getAttribute("data-number");
+              const preloadedText =
+                "Hello! I'm reaching out regarding our previous conversation about real estate opportunities.";
+              const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+                preloadedText
+              )}`;
+              window.open(whatsappUrl, "_blank");
+            });
+          });
+
+          callButtons.forEach((button) => {
+            button.addEventListener("click", function () {
+              const phoneNumber = this.getAttribute("data-number");
+              window.open(`tel:${phoneNumber}`, "_self");
+            });
+          });
+
+          // Add event listeners for dustbin icons (only in Interested calls)
+          const dustbinIcons = document.querySelectorAll('.dustbin-icon');
+          dustbinIcons.forEach(icon => {
+            icon.addEventListener('click', function() {
+              const phoneNumber = this.getAttribute('data-number');
+              if (confirm(`Are you sure you want to delete the record for ${phoneNumber}?`)) {
+                deleteInterestedCall(phoneNumber);  // Use the optimized delete function
+              }
+            });
+          });
+        }
+
+        function updateSummaryNumbers(calls) {
+          // Make sure we're working with the details array
+          const callsArray = calls.details || calls;
+
+          const totalCalls = callsArray.length;
+          const notInterestedCalls = callsArray.filter(
+            (call) => call.status === "Not Interested"
+          ).length;
+          const unansweredCalls = callsArray.filter(
+            (call) => call.status === "Unanswered"
+          ).length;
+          const callbackCalls = callsArray.filter(
+            (call) => call.status === "Callback"
+          ).length;
+          const interestedCalls = callsArray.filter(
+            (call) => call.status === "Interested"
+          ).length;
+
+          document.getElementById("totalCallsSummary").textContent = totalCalls;
+          document.getElementById("notInterestedCallsSummary").textContent =
+            notInterestedCalls;
+          document.getElementById("unansweredCallsSummary").textContent =
+            unansweredCalls;
+          document.getElementById("callBackCallsSummary").textContent =
+            callbackCalls;
+          document.getElementById("interestedCallsSummary").textContent =
+            interestedCalls;
+        }
+
+        function deleteRecord(phoneNumber) {
+          const database = firebase.database();
+
+          database
+            .ref("calls")
+            .orderByChild("number")
+            .equalTo(phoneNumber)
+            .once("value", (snapshot) => {
+              snapshot.forEach((childSnapshot) => {
+                childSnapshot.ref
+                  .remove()
+                  .then(() => {
+                    console.log(
+                      `Record for ${phoneNumber} deleted successfully`
+                    );
+                    // Update the UI immediately after successful deletion
+                    updateUIAfterDeletion(phoneNumber);
+                  })
+                  .catch((error) => {
+                    console.error("Error deleting record:", error);
+                  });
+              });
+            });
+        }
+
+        function updateUIAfterDeletion(phoneNumber) {
+          // Remove the deleted call from the window.todayCalls array
+          window.todayCalls = window.todayCalls.filter(
+            (call) => call.number !== phoneNumber
+          );
+
+          // Update the summary numbers
+          updateSummaryNumbers(window.todayCalls);
+
+          // Refresh the call details view
+          showCallDetails("Interested");
+        }
+
+        // Modify the setupRealtimeListener function
+        function setupRealtimeListener(telecallerEmail) {
+          if (!telecallerEmail) {
+            console.error('No telecaller email provided');
+            return;
+          }
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const startOfDay = today.getTime();
+          const endOfDay = startOfDay + 24 * 60 * 60 * 1000 - 1;
+
+          console.log("Setting up real-time listener for today:", new Date(startOfDay), "to", new Date(endOfDay));
+          console.log("Filtering calls for telecaller:", telecallerEmail);
+
+          const telecallerName = telecallerEmail.split('@')[0];
+          const callsRef = database.ref(telecallerName);
+
+          callsRef
+            .orderByChild("timestamp")
+            .startAt(startOfDay)
+            .endAt(endOfDay)
+            .on(
+              "value",
+              (snapshot) => {
+                console.log("Received data from Firebase");
+                const todayCalls = [];
+                snapshot.forEach((childSnapshot) => {
+                  const call = childSnapshot.val();
+                  if (call.telecallerEmail === telecallerEmail) {
+                    todayCalls.push(call);
+                  }
+                });
+                console.log("Fetched today's calls:", todayCalls);
+                updateTodayDashboard(todayCalls);
+              },
+              (error) => {
+                console.error("Error fetching today's calls:", error);
+              }
+            );
+        }
+
+        let telecallerEmail; // Declare this variable at the top level of the DOMContentLoaded function
+
+        function fetchDateCalls(date) {
+          // Get the stored telecaller information
+          const selectedTelecaller = localStorage.getItem('currentTelecaller');
+          if (!selectedTelecaller) {
+              console.error('No telecaller information found');
+              return;
+          }
+
+          // Format the selected date to match the database format (DD/MM/YY)
+          const selectedDate = date.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "2-digit",
+          }).replace(/\//g, "/");
+
+          console.log("Selected Date:", selectedDate);
+          console.log("Telecaller Email:", selectedTelecaller);
+
+          // Get the telecaller ID from the email
+          const telecallerId = selectedTelecaller.split("@")[0];
+
+          // Reference to the specific telecaller's node
+          const telecallerRef = database.ref(telecallerId);
+
+          telecallerRef.once("value")
+              .then((snapshot) => {
+                  const dateCalls = [];
+
+                  snapshot.forEach((childSnapshot) => {
+                      const call = childSnapshot.val();
+                      // Extract date part from timestamp
+                      const callDate = new Date(call.timestamp);
+                      const formattedCallDate = callDate.toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "2-digit",
+                      });
+
+                      console.log("Comparing dates:", formattedCallDate, selectedDate);
+
+                      // If the dates match, add to filtered results
+                      if (formattedCallDate === selectedDate) {
+                          dateCalls.push(call);
+                      }
+                  });
+
+                  console.log("Filtered calls:", dateCalls);
+
+                  // Update the dashboard with filtered calls
+                  updateTodayDashboard({ details: dateCalls });
+
+                  // Update the displayed date
+                  document.getElementById("currentDate").textContent = 
+                      date.toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                      });
+              })
+              .catch((error) => {
+                  console.error("Error fetching date calls:", error);
+                  // Show zeros if there's an error
+                  document.getElementById('totalCallsSummary').textContent = '0';
+                  document.getElementById('notInterestedCallsSummary').textContent = '0';
+                  document.getElementById('unansweredCallsSummary').textContent = '0';
+                  document.getElementById('callBackCallsSummary').textContent = '0';
+                  document.getElementById('interestedCallsSummary').textContent = '0';
+              });
+      }
+
+        // Replace the existing auth.onAuthStateChanged function
+        auth.onAuthStateChanged(function (user) {
+            if (user) {
+                // Get the stored telecaller information
+                const selectedTelecaller = localStorage.getItem('currentTelecaller');
+                const adminEmail = localStorage.getItem('currentAdminEmail');
+                
+                if (!selectedTelecaller || !adminEmail) {
+                    console.error('Missing telecaller or admin information');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                console.log("Logged in as:", adminEmail);
+                console.log("Corresponding telecaller:", selectedTelecaller);
+                
+                // Setup the realtime listener with the correct telecaller
+                setupRealtimeListener(selectedTelecaller);
+
+                // Update the calendar button event listener
+                const calendarBtn = document.getElementById("calendarBtn");
+                const calendarContainer = document.getElementById("calendarContainer");
+                const submitDateBtn = document.getElementById("submitDate");
+                const closeCalendarBtn = document.getElementById("closeCalendar");
+                let selectedDate;
+
+                if (calendarBtn) {
+                    calendarBtn.addEventListener("click", function () {
+                        calendarContainer.style.display = "block";
+                        if (!flatpickr.instanceExists) {
+                            flatpickr("#calendar", {
+                                inline: true,
+                                maxDate: "today",
+                                dateFormat: "Y-m-d",
+                                onChange: function (selectedDates, dateStr, instance) {
+                                    selectedDate = selectedDates[0];
+                                },
+                                onReady: function (dateObj, dateStr, instance) {
+                                    const calendarElement = instance.calendarContainer;
+                                    const buttonsContainer = document.createElement("div");
+                                    buttonsContainer.className = "calendar-buttons";
+                                    buttonsContainer.appendChild(submitDateBtn);
+                                    buttonsContainer.appendChild(closeCalendarBtn);
+                                    calendarElement.appendChild(buttonsContainer);
+                                },
+                            });
+                            flatpickr.instanceExists = true;
+                        }
+                    });
+                }
+
+                if (submitDateBtn) {
+                    submitDateBtn.addEventListener("click", function () {
+                        if (selectedDate) {
+                            // Show loading spinners before fetching data
+                            showLoadingState();
+                            selectedCalendarDate = selectedDate;
+                            fetchDateCalls(selectedDate);
+                            calendarContainer.style.display = "none";
+                        } else {
+                            alert("Please select a date");
+                        }
+                    });
+                }
+
+                if (closeCalendarBtn) {
+                    closeCalendarBtn.addEventListener("click", function () {
+                        calendarContainer.style.display = "none";
+                    });
+                }
+            } else {
+                console.log("No user logged in");
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Add event listener for back button
+        const backBtn = document.getElementById("backBtn");
+        if (backBtn) {
+          backBtn.addEventListener("click", function () {
+            // Check if there's an opener window (the original window that opened this one)
+            if (window.opener && !window.opener.closed) {
+              // Navigate the opener window to maindashboard.html
+              window.opener.location.href = "maindashboard.html";
+              // Close the current window/tab
+              window.close();
+            } else {
+              // If there's no opener, just navigate the current window
+              window.location.href = "maindashboard.html";
+            }
+          });
+        }
+
+        // Update the print functionality
+        function printTodayCalls() {
+          const title = document.querySelector(".dashboard-title").textContent;
+          const currentStatus = document.querySelector(
+            ".call-details-card h2"
+          ).textContent;
+          const tableContent = document
+            .querySelector(".call-details-table")
+            .cloneNode(true);
+
+          // Remove action buttons and dustbin icons from the cloned table
+          tableContent
+            .querySelectorAll(".whatsapp-btn, .call-btn, .dustbin-icon")
+            .forEach((el) => el.remove());
+
+          // Remove the last column (Actions) if it's empty
+          const headerRow = tableContent.querySelector("thead tr");
+          const dataRows = tableContent.querySelectorAll("tbody tr");
+          if (headerRow.lastElementChild.textContent.trim() === "Actions") {
+            headerRow.lastElementChild.remove();
+            dataRows.forEach((row) => row.lastElementChild.remove());
+          }
+
+          const printWindow = window.open("", "_blank");
+          printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>${title} - ${currentStatus}</title>
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                                max-width: 210mm;
+                                margin: 0 auto;
+                            }
+                            h1, h2 {
+                                text-align: center;
+                                color: #333;
+                            }
+                            h1 { font-size: 1.5em; }
+                            h2 { font-size: 1.2em; }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin-bottom: 20px;
+                            }
+                            th, td {
+                                border: 1px solid #ddd;
+                                padding: 8px;
+                                text-align: left;
+                                font-size: 0.9em;
+                            }
+                            th {
+                                background-color: #f2f2f2;
+                            }
+                            .print-btn {
+                                display: block;
+                                width: 100%;
+                                max-width: 200px;
+                                margin: 20px auto;
+                                padding: 10px;
+                                background-color: #007bff;
+                                color: white;
+                                border: none;
+                                border-radius: 5px;
+                                cursor: pointer;
+                            }
+                            @media print {
+                                .print-btn {
+                                    display: none;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${title}</h1>
+                        <h2>${currentStatus}</h2>
+                        <div style="overflow-x: auto;">
+                            ${tableContent.outerHTML}
+                        </div>
+                        <button class="print-btn" onclick="window.print()">Print</button>
+                    </body>
+                    </html>
+                `);
+          printWindow.document.close();
+        }
+
+        // Update the print button event listener
+        const printBtn = document.getElementById("printBtn");
+        if (printBtn) {
+          printBtn.removeEventListener("click", printBtn.onclick); // Remove existing listener
+          printBtn.addEventListener("click", printTodayCalls);
+        }
+
+        async function clearCallDetails(status) {
+          try {
+            console.log('Starting clearCallDetails with status:', status);
+            const user = auth.currentUser;
+            if (!user) {
+              console.log('No user found');
+              alert("Please sign in to clear calls");
+              return;
+            }
+        
+            console.log('User email:', user.email);
+            const adminEmail = user.email;
+            const telecallerEmail = await getTelecallerEmail(adminEmail);
+            console.log('Telecaller email:', telecallerEmail);
+        
+            const today = new Date().toISOString().split("T")[0];
+            console.log('Date:', today);
+            const callsRef = ref(database, `calls/${telecallerEmail}/${today}`);
+        
+            const snapshot = await get(callsRef);
+            console.log('Snapshot exists:', snapshot.exists());
+            if (!snapshot.exists()) {
+              alert("No calls found for today");
+              return;
+            }
+        
+            const updates = {};
+            snapshot.forEach((childSnapshot) => {
+              const call = childSnapshot.val();
+              console.log('Processing call:', call);
+              if (status === "Total" || call.status === status) {
+                updates[childSnapshot.key] = null;
+              }
+            });
+        
+            console.log('Updates to make:', updates);
+            if (Object.keys(updates).length > 0) {
+              await update(callsRef, updates);
+              updateSummaryNumbers(
+                Object.values(snapshot.val()).filter((call) =>
+                  status === "Total" ? false : call.status !== status
+                )
+              );
+              showCallDetails(status);
+              alert(`Successfully cleared ${status} calls`);
+            } else {
+              alert(`No ${status} calls found to clear`);
+            }
+          } catch (error) {
+            console.error("Error in clearCallDetails:", error);
+            alert("Failed to clear calls. Please try again.");
+          }
+        }
+
+        // Replace the Clear button setup with this updated version
+        // Place this code right after the DOMContentLoaded event starts
+        document.addEventListener("DOMContentLoaded", function () {
+          const clearButtons = {
+            Total: document.querySelector(
+              "#totalCallsCard .card-footer .clear-btn"
+            ),
+            "Not Interested": document.querySelector(
+              "#notInterestedCallsSummary .card-footer .clear-btn"
+            ),
+            Unanswered: document.querySelector(
+              "#unansweredCallsSummary .card-footer .clear-btn"
+            ),
+            Callback: document.querySelector(
+              "#callbackCard .card-footer .clear-btn"
+            ),
+          };
+
+          for (const [status, button] of Object.entries(clearButtons)) {
+            if (button) {
+                button.addEventListener("click", () => {
+  if (confirm(`Are you sure you want to clear all ${status} calls?`)) {
+    clearCallDetails(status);  // Changed to match the existing function name
+  }
+});
+            }
+          }
+        });
+
+        // Update the click listeners for the summary cards
+        function setupSummaryCardListeners() {
+          const cardMappings = {
+            totalCallsCard: "Total",
+            notInterestedCallsSummary: "Not Interested",
+            unansweredCallsSummary: "Unanswered",
+            callbackCard: "Callback",
+            interestedCard: "Interested",
+          };
+
+          Object.entries(cardMappings).forEach(([elementId, status]) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+              element.addEventListener("click", () => {
+                const callDetailsCard =
+                  document.getElementById("callDetailsCard");
+                if (
+                  callDetailsCard.style.display === "none" ||
+                  callDetailsCard.getAttribute("data-status") !== status
+                ) {
+                  showCallDetails(status);
+                } else {
+                  callDetailsCard.style.display = "none";
+                }
+              });
+            }
+          });
+        }
+
+        // Optimize Dustbin icon functionality for Interested calls
+        async function deleteInterestedCall(phoneNumber) {
+            try {
+                const selectedTelecaller = localStorage.getItem('selectedTelecaller');
+                const telecallerName = selectedTelecaller.split('@')[0];
+                
+                // Update local data immediately
+                window.todayCalls = window.todayCalls.filter(call => call.number !== phoneNumber);
+
+                // Update UI instantly
+                const summary = {
+                    total: window.todayCalls.length,
+                    interested: window.todayCalls.filter(call => call.status === 'Interested').length,
+                    notInterested: window.todayCalls.filter(call => call.status === 'Not Interested').length,
+                    callback: window.todayCalls.filter(call => call.status === 'Callback').length,
+                    unanswered: window.todayCalls.filter(call => call.status === 'Unanswered').length
+                };
+
+                // Update UI elements
+                document.getElementById('totalCallsSummary').textContent = summary.total;
+                document.getElementById('interestedCallsSummary').textContent = summary.interested;
+                document.getElementById('notInterestedCallsSummary').textContent = summary.notInterested;
+                document.getElementById('callBackCallsSummary').textContent = summary.callback;
+                document.getElementById('unansweredCallsSummary').textContent = summary.unanswered;
+
+                // Refresh the interested calls view
+                showCallDetails('Interested');
+
+                // Delete from Firebase in background
+                const dbRef = firebase.database().ref(telecallerName);
+                const snapshot = await dbRef
+                    .orderByChild('number')
+                    .equalTo(phoneNumber)
+                    .once('value');
+
+                const updates = {};
+                snapshot.forEach(childSnapshot => {
+                    updates[childSnapshot.key] = null;
+                });
+
+                await dbRef.update(updates);
+
+            } catch (error) {
+                console.error('Error deleting interested call:', error);
+                alert('Failed to delete call. Please try again.');
+            }
+        }
+
+        // Add helper function to show loading spinners
+        function showLoadingState() {
+            const spinnerHTML = '<div class="loading-spinner"></div>';
+            document.getElementById('totalCallsSummary').innerHTML = spinnerHTML;
+            document.getElementById('notInterestedCallsSummary').innerHTML = spinnerHTML;
+            document.getElementById('unansweredCallsSummary').innerHTML = spinnerHTML;
+            document.getElementById('callBackCallsSummary').innerHTML = spinnerHTML;
+            document.getElementById('interestedCallsSummary').innerHTML = spinnerHTML;
+        }
+      });
+    </script>
+  </body>
+</html>

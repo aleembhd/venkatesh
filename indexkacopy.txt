@@ -1,0 +1,3413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Feedback App</title>
+    <!-- Add favicon -->
+    <link rel="icon" href="images/favicon.png" type="image/x-icon">
+    <link rel="apple-touch-icon" href="images/favicon.png">
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Add this line for Firebase Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Add this right after your Firebase scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- Add these lines right after the existing meta tags -->
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/logo.png">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #ffffff;
+            --accent-color: #808080;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            z-index: 1001;
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            z-index: 1002;
+        }
+
+        .bar {
+            width: 100%;
+            height: 4px;
+            background-color: var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.open .bar:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.open .bar:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.open .bar:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        .nav-menu {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding-top: 4rem; /* Adjusted padding to move links down */
+            padding-left: 1rem;
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+
+        .nav-menu a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--accent-color);
+        }
+
+        .separator {
+            width: 80%;
+            height: 1px;
+            background-color: var(--secondary-color);
+            margin: 1rem 0;
+        }
+
+        .nav-menu.open {
+            left: 0;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .logo {
+            max-width: 150px;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .quote {
+            font-size: 1rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            color: var(--accent-color);
+        }
+
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .btn {
+            width: 80%;
+            padding: 15px;
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            background-color: #fff;
+            color: #000;
+        }
+
+        /* Cool ripple effect */
+        .btn:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+
+        .btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-color);
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+ 
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn span {
+            position: relative;
+            z-index: 2;
+        }
+
+        @media (min-width: 480px) {
+            .logo {
+                max-width: 200px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .quote {
+                font-size: 1.2rem;
+            }
+
+            .btn-container {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .btn {
+                width: auto;
+                min-width: 200px;
+                white-space: nowrap;
+                padding: 15px 25px;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 0.8rem 2.5rem 0.8rem 0.8rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #000000;
+            font-size: 1.2rem;
+        }
+
+        .remember-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .remember-container input {
+            margin-right: 0.5rem;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--accent-color);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .credential-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--accent-color);
+            border-radius: 5px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #000000;
+            font-size: 1.2rem;
+        }
+
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .btn-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 80%;
+                margin: 10px 0;
+                padding: 15px;
+                background-color: #000;
+                color: #fff;
+                border: 2px solid #fff;
+                border-radius: 30px;
+                transition: all 0.3s ease; 
+            }
+
+            .btn:active {
+                transform: scale(0.95);
+                background-color: #fff;
+                color: #000;
+            }
+
+            /* Cool ripple effect */
+            .btn {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .btn:after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 5px;
+                height: 5px;
+                background: rgba(255, 255, 255, 0.5);
+                opacity: 0;
+                border-radius: 100%;
+                transform: scale(1, 1) translate(-50%);
+                transform-origin: 50% 50%;
+            }
+
+            @keyframes ripple {
+                0% {
+                    transform: scale(0, 0);
+                    opacity: 1;
+                }
+                20% {
+                    transform: scale(25, 25);
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(40, 40);
+                }
+            }
+
+            .btn:focus:not(:active)::after {
+                animation: ripple 1s ease-out;
+            }
+        }
+
+        .manager-button-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .name-edit-input {
+            width: 80% !important;
+            padding: 8px 12px !important;
+            border: 2px solid #000 !important;
+            border-radius: 5px !important;
+            font-size: 16px !important;
+            color: #000 !important;
+            background: #fff !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        }
+        
+        .name-edit-input:focus {
+            outline: none !important;
+            border-color: #808080 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+        }
+        
+        .edit-icon {
+            position: absolute;
+            right: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+        
+        .edit-icon:hover {
+            opacity: 1;
+        }
+        
+        .manager-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .manager-btn:hover {
+            background: #333;
+            transform: translateY(-1px);
+        }
+        
+        .edit-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            right: 35px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .edit-icon:hover + .edit-tooltip {
+            opacity: 1;
+        }
+
+        .save-button {
+            background: black;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .save-button:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        .save-button:active {
+            transform: scale(0.98);
+        }
+
+        .user-profile {
+            margin-left: auto;
+            padding-right: 20px;
+            position: relative;
+        }
+
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--secondary-color);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            object-fit: cover;
+        }
+
+        .profile-pic:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--primary-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-dropdown.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .profile-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            object-fit: cover;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-details span:first-child {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-details span:last-child {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+        }
+
+        .dropdown-separator {
+            height: 1px;
+            background: var(--accent-color);
+            margin: 0.5rem 0;
+        }
+
+        .sign-out-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--secondary-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sign-out-btn:hover {
+            background: var(--accent-color);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .create-account-link {
+            display: block;
+            text-align: center;
+            color: #0066cc;
+            text-decoration: underline;
+            font-size: 0.9rem;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .create-account-link:hover {
+            color: #0052a3;
+            transform: scale(1.02);
+        }
+
+        .admin-email-container {
+            margin-left: 15px;
+            flex: 0 1 200px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .admin-email-input {
+            width: 100%;
+            height: 32px;
+            padding: 6px 30px 6px 10px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            font-size: 13px;
+        }
+
+        .save-email-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            color: var(--accent-color);
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .save-email-icon:hover {
+            color: var(--secondary-color);
+        }
+
+        .save-email-icon.saved {
+            color: #4CAF50;
+        }
+
+        /* Add these styles for the success message */
+        .success-message {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 250px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .success-message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .success-message svg {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Update email input styles for better visibility */
+        .admin-email-container {
+            margin-left: 15px;
+            flex: 0 1 200px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .admin-email-input {
+            width: 100%;
+            height: 32px;
+            padding: 6px 30px 6px 10px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            font-size: 13px;
+        }
+
+        /* Update the email input and checkmark styles */
+        .email-input-wrapper {
+            position: relative;
+            width: 100%;
+            height: 32px;
+        }
+
+        .admin-email-input {
+            width: 100%;
+            height: 100%;
+            padding: 6px 35px 6px 12px; /* Increased right padding for icon */
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            font-size: 13px;
+        }
+
+        .save-email-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            color: var(--accent-color);
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        /* Update success message styles */
+        .success-message {
+            position: fixed;
+            top: 80px; /* Position below navbar */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .success-message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #otpVerificationModal .modal-content {
+            max-width: 400px;
+            text-align: center;
+        }
+
+        #otpInput {
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .success-message {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-card-2 {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .popup-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: black;
+            margin-bottom: 20px;
+        }
+
+        .popup-buttons-2 {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .popup-button-2 {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .not-interested-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .interested-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .callback-button {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .popup-button-2:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .popup-button-2:active {
+            transform: translateY(0);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        #statusModalStyles {
+            display: none;
+        }
+
+        /* Add these styles in the head section */
+        .circular-text-container {
+            position: fixed;
+            bottom: 5px;
+            right: 5px;
+            width: 80px;    /* Much larger container for better visibility */
+            height: 80px;
+            pointer-events: none;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .circular-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            animation: rotate 25s linear infinite;  /* Changed from 12s to 20s for slower rotation */
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="hamburger" id="hamburger">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <div class="admin-email-container">
+            <div class="email-input-wrapper">
+                <input 
+                    type="email" 
+                    id="globalAdminEmail" 
+                    placeholder="Set Admin Email"
+                    class="admin-email-input"
+                    value="admin@gmail.com"
+                >
+                <svg id="saveEmailBtn" class="save-email-icon" viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+                </svg>
+            </div>
+        </div>
+        <div class="nav-menu" id="navMenu">
+            <a href="about.html">About</a>
+            <div class="separator"></div>
+            <a href="help.html">Help</a>
+            <div class="separator"></div>
+            <a href="#" onclick="window.open('upload.html', '_blank')" style="
+            background-color: #000000;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: 1px solid #FFFFFF;
+            color: #FFFFFF;
+            ">Upload Data</a>
+            
+        </div>
+    </div>
+
+    <!-- Add this success message div -->
+    <div class="success-message" id="successMessage">
+        Welcome, profile verified
+    </div>
+
+    <div class="container">
+        <!-- <img src="images/logo.png" alt="Company Logo" class="logo"> -->
+        <h1>Welcome</h1>
+        <p class="quote" id="motivationalQuote"></p>
+        <div class="btn-container">
+            <button class="btn" id="telecallerBtn"><span>Telecaller</span></button>
+            <button class="btn" id="marketingManagerBtn"><span>Marketing Manager</span></button>
+        </div>
+    </div>
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <button id="backBtn" class="back-btn" style="background-color: black; color: white; border: none; padding: 5px 10px; font-size: 12px; cursor: pointer; border-radius: 5px;">&larr; Back</button>
+            <h2 style="margin-bottom: 20px;">Login Details </h2>
+            <div class="input-container">
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="email" id="emailInput" class="credential-input" value="admin@gmail.com" readonly style="background-color: #f0f0f0; cursor: copy; padding-right: 40px;" placeholder="Enter email">
+                    <svg id="copyIcon" style="position: absolute; right: 10px; cursor: pointer; width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </div>
+                <div class="password-container">
+                    <input type="password" id="passwordInput" class="credential-input" placeholder="Enter password">
+                    <span class="password-toggle" id="passwordToggle">👁️</span>
+                </div>
+            </div>
+            <a id="createAdminBtn" class="create-account-link">➕ Change Password</a>
+            <div class="remember-container">
+                <input type="checkbox" id="rememberCheckbox">
+                <label for="rememberCheckbox">Remember me</label>
+            </div>
+            <button id="submitPassword" class="submit-btn">Submit</button>
+        </div>
+    </div>
+
+    <div id="createAdminModal" class="modal">
+        <div class="modal-content">
+            <button class="back-btn" style="background-color: black; color: white; border: none; padding: 5px 10px; font-size: 12px; cursor: pointer; border-radius: 5px;">&larr; Back</button>
+            <h2 style="margin-bottom: 20px;">Create Admin Account</h2>
+            <div class="input-container">
+                <input type="email" id="newAdminEmail" class="credential-input" value="admin@gmail.com" readonly style="background-color: #f0f0f0; cursor: copy;" placeholder="Email">
+                <div class="password-container">
+                    <input type="password" id="newAdminPassword" class="credential-input" placeholder="Create new password" style="width: calc(100% - 60px); display: inline-block;">
+                    <button id="togglePasswordBtn" onclick="toggleButtonText()" style="width: 50px; height: 35px; margin-left: 5px; background: black; color: white; border: none; border-radius: 5px; cursor: pointer;">Show</button>
+                </div>
+            </div>
+            <button id="createAccountBtn" class="submit-btn">Save Changes</button>
+        </div>
+    </div>
+
+    <div id="secretKeyModal" class="modal">
+        <div class="modal-content">
+            <button class="back-btn" style="background-color: black; color: white; border: none; padding: 5px 10px; font-size: 12px; cursor: pointer; border-radius: 5px;">&larr; Back</button>
+            <h2 style="margin-bottom: 20px;">Enter Secret Key</h2>
+            <div class="input-container">
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="text" id="secretKeyInput" class="credential-input" placeholder="Enter secret key" style="padding-right: 40px;">
+                    <svg id="pasteIcon" style="position: absolute; right: 10px; cursor: pointer; width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    </svg>
+                </div>
+            </div>
+            <button id="verifySecretKey" class="submit-btn">Verify</button>
+        </div>
+    </div>
+
+    
+
+    <script>
+        // Add this right after the first Firebase initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLrrkbXcW-exG8_n4kOEmzA-SETMWqo-0",
+            authDomain: "feedbackapp-5904d.firebaseapp.com",
+            databaseURL: "https://feedbackapp-5904d-default-rtdb.firebaseio.com",
+            projectId: "feedbackapp-5904d",
+            storageBucket: "feedbackapp-5904d.firebasestorage.app",
+            messagingSenderId: "620175464767",
+            appId: "1:620175464767:web:8054286a27a26210619b8a",
+            measurementId: "G-QH8JN7TE0J"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Initialize second Firebase instance for password change
+        const passwordChangeConfig = {
+            apiKey: "AIzaSyADbdw5KtrmjQT_5EBJ6kNzExx8kkTEkuc",
+            authDomain: "realestate-694f3.firebaseapp.com",
+            databaseURL: "https://realestate-694f3-default-rtdb.firebaseio.com",
+            projectId: "realestate-694f3",
+            storageBucket: "realestate-694f3.appspot.com",
+            messagingSenderId: "966861149434",
+            appId: "1:966861149434:web:8a57876a91c80bcf216543",
+            measurementId: "G-J68SDN99DV"
+        };
+        const passwordChangeAuth = firebase.initializeApp(passwordChangeConfig, 'passwordChange');
+
+        // Add this flag to prevent loops
+        const redirected = sessionStorage.getItem('redirected');
+        
+        // Remove the auth state change handler completely
+        firebase.auth().onAuthStateChanged((user) => {
+            // No redirects or profile restoration
+        });
+
+        // Add this after Firebase initialization
+        const namesRef = firebase.database().ref('telecallerNames');
+
+        // Pre-fetch the names when the page loads
+        let cachedNames = null;
+        namesRef.once('value')
+            .then(snapshot => {
+                cachedNames = snapshot.val() || {};
+            })
+            .catch(error => console.error('Error pre-fetching names:', error));
+
+        // Add this after Firebase initialization
+        const excludedButtons = [1,2,3,5,6,7,8,9,10]; // Global excludedButtons array
+
+        // Add this right after your Firebase initialization
+        let hamburgerPressTimer;
+
+        // Add these event listeners for the hamburger menu
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('navMenu');
+            const adminEmailContainer = document.querySelector('.admin-email-container');
+            const saveEmailBtn = document.getElementById('saveEmailBtn');
+            const globalAdminEmail = document.getElementById('globalAdminEmail');
+            
+            // Initially hide the email container
+            adminEmailContainer.style.display = 'none';
+            
+            let pressTimer = null;
+            let isLongPress = false;
+            let pressStartTime = 0;
+            
+            // Handle mousedown/touchstart
+            function startPress(e) {
+                pressStartTime = Date.now();
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    adminEmailContainer.style.display = 'block';
+                    adminEmailContainer.style.opacity = '1';
+                }, 3000);
+            }
+            
+            // Handle mouseup/touchend
+            function endPress(e) {
+                const pressDuration = Date.now() - pressStartTime;
+                clearTimeout(pressTimer);
+                
+                // If it was a short press (click), toggle menu
+                if (pressDuration < 3000) {
+                    navMenu.classList.toggle('open');
+                    hamburger.classList.toggle('open');
+                }
+                
+                // Reset long press flag after a short delay
+                setTimeout(() => {
+                isLongPress = false;
+                }, 100);
+            }
+            
+            // Update email save functionality
+            saveEmailBtn.addEventListener('click', function() {
+                const newEmail = globalAdminEmail.value;
+                
+                // Get all numbers from 0 to 10
+                const allNumbers = Array.from({length: 11}, (_, i) => i);
+                const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+                
+                // ONLY save to adminEmailids path
+                firebase.database().ref('adminEmailids').child(adminEmailKey).set(newEmail)
+                    .then(() => {
+                        saveEmailBtn.classList.add('saved');
+                        setTimeout(() => {
+                            saveEmailBtn.classList.remove('saved');
+                        }, 2000);
+                        adminEmailContainer.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error saving email:', error);
+                        alert('Failed to save email. Please try again.');
+                    });
+            });
+
+            // Remove any existing listeners from both old and new paths
+            firebase.database().ref('adminEmails').off();
+            firebase.database().ref('adminEmailids').off();
+
+            // Update the initial email load to respect the saved email
+            document.addEventListener('DOMContentLoaded', function() {
+                const allNumbers = Array.from({length: 11}, (_, i) => i);
+                const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+                
+                // Load the saved email once
+                firebase.database().ref('adminEmailids').child(adminEmailKey).once('value')
+                    .then(snapshot => {
+                        const savedEmail = snapshot.val();
+                        if (savedEmail) {
+                            cachedAdminEmail = savedEmail;
+                            globalAdminEmail.value = savedEmail;
+                        }
+                    });
+            });
+
+            // Add event listeners
+            hamburger.addEventListener('mousedown', startPress);
+            hamburger.addEventListener('touchstart', startPress);
+            hamburger.addEventListener('mouseup', endPress);
+            hamburger.addEventListener('touchend', endPress);
+            hamburger.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const quotes = [
+                "Build your dreams, one property at a time.",
+                "Real estate: Where passion meets prosperity.",
+                "Unlock potential in every square foot.",
+                "Your dream home awaits. Make it happen.",
+                "Turn bricks and mortar into golden opportunities.",
+                "Real estate success: Vision, action, determination.",
+                "Invest in land, they're not making more.",
+                "Transform lives through real estate excellence.",
+                "Create wealth, build legacies through property.",
+                "Real estate: The cornerstone of financial freedom."
+            ];
+
+            const quoteElement = document.getElementById('motivationalQuote');
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            quoteElement.textContent = randomQuote;
+
+            const telecallerBtn = document.getElementById('telecallerBtn');
+            const marketingManagerBtn = document.getElementById('marketingManagerBtn');
+            const modal = document.getElementById('passwordModal');
+            const emailInput = document.getElementById('emailInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const rememberCheckbox = document.getElementById('rememberCheckbox');
+            const submitPassword = document.getElementById('submitPassword');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const backBtn = document.getElementById('backBtn');
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('navMenu');
+
+            let currentRole = '';
+
+            telecallerBtn.addEventListener('click', function() {
+                const excludedButtons = [1,2,3,5,6,7,8,9,10]; // Add any numbers you want to exclude here, e.g., [7, 3, 5]
+                const telecallerModal = document.createElement('div');
+                telecallerModal.className = 'modal';
+                telecallerModal.style.display = 'block';
+                
+                // Initially show default names
+                telecallerModal.innerHTML = `
+                    ${editStyles}
+                    <div class="modal-content">
+                        <button class="back-button" style="position: absolute; top: 15px; left: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                            ← Back
+                        </button>
+                        <h2>Select Telecaller</h2>
+                        <div style="display: flex; flex-direction: column; gap: 20px;" id="telecallerButtonsContainer">
+                            ${Array.from({ length: 11 }, (_, i) => {
+                                const number = i;
+                                // Skip any excluded button numbers
+                                if (excludedButtons.includes(number)) return '';
+                                return `
+                                    <div class="manager-button-container">
+                                        <button id="telecaller${number}Btn" class="manager-btn">
+                                            <span class="button-number">${number}.</span>
+                                            <span id="telecallerName${number}">Telecaller ${number}</span>
+                                        </button>
+                                    </div>
+                                `;
+                            }).filter(button => button !== '').join('')}
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(telecallerModal);
+
+                // Add click handlers only for non-excluded buttons
+                for(let i = 0; i <= 10; i++) {
+                    if (!excludedButtons.includes(i)) {
+                        const button = document.getElementById(`telecaller${i}Btn`);
+                        if (button) {
+                            button.addEventListener('click', () => {
+                                // Store telecaller ID immediately when button is clicked
+                                localStorage.setItem('currentTelecallerId', i.toString());
+                                console.log('Stored telecaller ID:', i); // Debug log
+                                
+                                const telecallerEmail = `telecaller${i}@gmail.com`;
+                                localStorage.setItem('telecallerEmail', telecallerEmail);
+                                
+                                // Create and show the options modal
+                                const optionsModal = document.createElement('div');
+                                optionsModal.className = 'modal';
+                                optionsModal.style.display = 'block';
+                                optionsModal.innerHTML = `
+                                    <style>
+                                        .activity-dropdown {
+                                            position: absolute;
+                                            top: 45px;
+                                            right: 15px;
+                                            background: white;
+                                            border-radius: 8px;
+                                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                                            min-width: 220px;
+                                            z-index: 1000;
+                                            padding: 8px 0;
+                                        }
+
+                                        .activity-option {
+                                            padding: 12px 16px;
+                                            display: flex;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                            cursor: pointer;
+                                            transition: background-color 0.2s ease;
+                                            color: #333;
+                                            font-size: 14px;
+                                            font-weight: 500;
+                                        }
+
+                                        .activity-option:hover {
+                                            background-color: #f5f5f5;
+                                        }
+
+                                        .activity-count {
+                                            color: #666;
+                                            font-size: 13px;
+                                            font-weight: 400;
+                                            margin-left: 8px;
+                                        }
+                                    </style>
+                                    <div class="modal-content">
+                                        <button class="back-button" style="position: absolute; top: 15px; left: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                                            ← Back
+                                        </button>
+                                        <button class="activity-btn" style="position: absolute; top: 15px; right: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;" id="activityBtn">
+                                            My Activity
+                                        </button>
+                                        <div class="activity-dropdown" id="activityDropdown" style="display: none; position: absolute; top: 45px; right: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;">
+                                            <div class="activity-option" onclick="redirectToClickToCall('unanswered')">
+                                                <span>Unanswered Calls</span>
+                                                <span class="activity-count" id="unansweredCount">(0)</span>
+                                            </div>
+                                            <div class="activity-option" onclick="redirectToClickToCall('callback')">
+                                                <span>Callback Calls</span>
+                                                <span class="activity-count" id="callbackCount">(0)</span>
+                                            </div>
+                                            <div class="activity-option" onclick="redirectToClickToCall('interested')">
+                                                <span>Interested Calls</span>
+                                                <span class="activity-count" id="interestedCount">(0)</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <h2>Select Option</h2>
+                                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                                            <button id="dialpadBtn" class="manager-btn">
+                                                <span>Dialpad</span>
+                                            </button>
+                                            <button id="clickToCallBtn" class="manager-btn">
+                                                <span>Click to Call</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                                
+                                document.body.appendChild(optionsModal);
+                                telecallerModal.style.display = 'none';
+
+                                // Add activity button functionality
+                                const activityBtn = optionsModal.querySelector('#activityBtn');
+                                const activityDropdown = optionsModal.querySelector('#activityDropdown');
+
+                                // Toggle dropdown on activity button click
+                                activityBtn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    activityDropdown.style.display = activityDropdown.style.display === 'none' ? 'block' : 'none';
+                                    
+                                    // If opening dropdown, fetch and update counts
+                                    if (activityDropdown.style.display === 'block') {
+                                        updateActivityCounts();
+                                    }
+                                });
+
+                                // Close dropdown when clicking outside
+                                document.addEventListener('click', function(e) {
+                                    if (!activityBtn.contains(e.target) && !activityDropdown.contains(e.target)) {
+                                        activityDropdown.style.display = 'none';
+                                    }
+                                });
+
+                                // Function to update activity counts
+                                async function updateActivityCounts() {
+                                    try {
+                                        const telecallerEmail = localStorage.getItem('telecallerEmail');
+                                        const telecallerName = telecallerEmail.split('@')[0];
+                                        const db = firebase.database();
+                                        const snapshot = await db.ref(telecallerName).once('value');
+                                        const calls = snapshot.val() || {};
+
+                                        let counts = {
+                                            unanswered: 0,
+                                            interested: 0,
+                                            callback: 0
+                                        };
+
+                                        Object.values(calls).forEach(call => {
+                                            if (call.status === 'Unanswered') counts.unanswered++;
+                                            if (call.status === 'Interested') counts.interested++;
+                                            if (call.status === 'Callback') counts.callback++;
+                                        });
+
+                                        // Update count displays
+                                        optionsModal.querySelector('#unansweredCount').textContent = `(${counts.unanswered})`;
+                                        optionsModal.querySelector('#interestedCount').textContent = `(${counts.interested})`;
+                                        optionsModal.querySelector('#callbackCount').textContent = `(${counts.callback})`;
+
+                                    } catch (error) {
+                                        console.error('Error updating counts:', error);
+                                    }
+                                }
+
+                                // Prevent dropdown from closing when clicking inside it
+                                activityDropdown.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                });
+
+                                // Add click handlers for the option buttons
+                                document.getElementById('dialpadBtn').addEventListener('click', () => {
+                                    window.open('dialpad.html', '_blank');
+                                    optionsModal.remove();
+                                    telecallerModal.remove();
+                                });
+
+                                document.getElementById('clickToCallBtn').addEventListener('click', () => {
+                                    // Verify ID is still in localStorage
+                                    const storedId = localStorage.getItem('currentTelecallerId');
+                                    console.log('Opening clicktocall with ID:', storedId);
+                                    window.open('clicktocall.html?view=all', '_blank');
+                                    optionsModal.remove();
+                                    telecallerModal.remove();
+                                });
+
+                                // Back button handler
+                                optionsModal.querySelector('.back-button').addEventListener('click', () => {
+                                    optionsModal.remove();
+                                    telecallerModal.style.display = 'block';
+                                });
+
+                                // Authenticate in background
+                                firebase.auth().signInWithEmailAndPassword(telecallerEmail, 'telecaller@123')
+                                    .catch(error => console.error('Auth error:', error));
+                            });
+                        }
+                    }
+                }
+
+                telecallerModal.querySelector('.back-button').addEventListener('click', () => 
+                    telecallerModal.remove()
+                );
+
+                // Real-time listener for name updates (excluding excluded buttons)
+                firebase.database().ref('telecallerNames').on('value', (snapshot) => {
+                    const names = snapshot.val() || {};
+                    // Update each name span with the Firebase data
+                    for(let i = 0; i <= 10; i++) {
+                        if (!excludedButtons.includes(i)) {
+                            const nameSpan = document.getElementById(`telecallerName${i}`);
+                            if (nameSpan) {
+                                const nameKey = `telecaller${getNumberWord(i)}`; // e.g., telecallerOne, telecallerTwo
+                                if (names[nameKey]) {
+                                    nameSpan.textContent = names[nameKey];
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+            marketingManagerBtn.addEventListener('click', function() {
+                const modal = document.getElementById('passwordModal');
+                modal.style.display = 'block';
+                document.querySelector('.modal-content h2').textContent = 'Admin Login Details';
+                
+                // Get dynamic key
+                const allNumbers = Array.from({length: 11}, (_, i) => i);
+                const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+                
+                // Fetch from adminEmailids path
+                firebase.database().ref('adminEmailids').child(adminEmailKey).once('value')
+                    .then(snapshot => {
+                        const savedEmail = snapshot.val();
+                        if (savedEmail) {
+                            document.getElementById('emailInput').value = savedEmail;
+                            document.getElementById('emailInput').setAttribute('value', savedEmail);
+                            document.getElementById('emailInput').readOnly = true;
+                            // Focus on password input immediately
+                            document.getElementById('passwordInput').focus();
+                        }
+                    });
+            });
+
+            submitPassword.addEventListener('click', function() {
+                const email = emailInput.value;
+                const password = passwordInput.value;
+
+                // First check if it's the default admin
+                if (email === 'admin@gmail.com' && password === 'admin@123') {
+                    handleAdminLogin();
+                    return;
+                }
+
+                // Get missing numbers to create the admin key for verification
+                const allNumbers = Array.from({length: 11}, (_, i) => i);
+                const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                const adminKey = `admin${missingNumbers.join('-')}password`;
+
+                // Check custom admin credentials
+                firebase.database().ref('adminCredentials').child(adminKey).once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const adminData = snapshot.val();
+                            console.log('Retrieved admin data:', adminData); // Debug log
+                            
+                            // Check if either email matches (the stored one or admin@gmail.com)
+                    const emailMatches = (adminData.email === email || email === 'admin@gmail.com');
+                    const passwordMatches = (adminData.password === password);
+                    
+                    if (emailMatches && passwordMatches) {
+                        // Show success message
+                        const successMessage = document.getElementById('successMessage');
+                        successMessage.textContent = 'Login successful!';
+                        successMessage.classList.add('show');
+                        
+                        // Handle login immediately
+                        handleAdminLogin();
+                        
+                        // Keep only the green success message visible for 1.5 seconds
+                        setTimeout(() => {
+                            successMessage.classList.remove('show');
+                        }, 1500); // Changed to 1500ms for green success message only
+                    } else {
+                        alert('Invalid credentials');
+                            }
+                        } else {
+                            alert('Admin account not found');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error checking admin credentials:', error);
+                    alert('Error checking credentials');
+                    });
+
+                function handleAdminLogin() {
+                    modal.style.display = 'none';
+                    
+                    // Handle remember me
+                    if (rememberCheckbox.checked) {
+                        localStorage.setItem('rememberedManagerEmail', email);
+                        localStorage.setItem('rememberedManagerPassword', password);
+                    } else {
+                        localStorage.removeItem('rememberedManagerEmail');
+                        localStorage.removeItem('rememberedManagerPassword');
+                    }
+
+                    // Show manager selection modal with excluded buttons
+                    showManagerSelectionModal();
+                }
+            });
+
+            passwordToggle.addEventListener('click', function() {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    passwordToggle.textContent = '🔒';
+                } else {
+                    passwordInput.type = 'password';
+                    passwordToggle.textContent = '👁️';
+                }
+            });
+
+            backBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                // Only clear the input fields, don't remove from localStorage
+                emailInput.value = '';
+                passwordInput.value = '';
+            });
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            };
+
+            hamburger.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent the click from propagating to the window
+                toggleMenu();
+            });
+
+            function toggleMenu() {
+                navMenu.classList.toggle('open');
+                hamburger.classList.toggle('open');
+            }
+
+            // Close the menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!navMenu.contains(event.target) && !hamburger.contains(event.target)) {
+                    navMenu.classList.remove('open');
+                    hamburger.classList.remove('open');
+                }
+            });
+
+            // Prevent clicks inside the menu from closing it
+            navMenu.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+
+            // Define editStyles here so it's available to both modals
+            const editStyles = `
+                <style>
+                    .modal-content {
+                        position: relative;
+                        background: white;
+                        border-radius: 10px;
+                        padding: 2rem;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        max-height: 80vh; /* Limit height to 80% of viewport height */
+                        overflow-y: auto; /* Enable vertical scrolling */
+                    }
+
+                    /* Custom scrollbar styles for better appearance */
+                    .modal-content::-webkit-scrollbar {
+                        width: 8px;
+                    }
+
+                    .modal-content::-webkit-scrollbar-track {
+                        background: #f1f1f1;
+                        border-radius: 4px;
+                    }
+
+                    .modal-content::-webkit-scrollbar-thumb {
+                        background: #888;
+                        border-radius: 4px;
+                    }
+
+                    .modal-content::-webkit-scrollbar-thumb:hover {
+                        background: #555;
+                    }
+
+                    /* Ensure the back button stays fixed at the top */
+                    .back-button {
+                        
+                        top: 10px !important;
+                        left: 15px !important;
+                        z-index: 1000 !important;
+                        margin-bottom: 15px !important;
+                    }
+
+                    /* Add some padding to the title to prevent overlap with back button */
+                    .modal-content h2 {
+                        padding-top: 20px !important;
+                    }
+
+                    /* Add some bottom padding to the button container */
+                    .modal-content > div {
+                        padding-bottom: 20px;
+                    }
+
+                    .manager-btn {
+                        width: 100%;
+                        padding: 15px 25px;
+                        border: none;
+                        border-radius: 13px;
+                        background: black;
+                        color: white;
+                        font-size: 1.3rem;
+                        cursor: pointer;
+                        transition: transform 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    .button-number {
+                        margin-right: 15px;
+                        font-weight: bold;
+                        opacity: 0.8;
+                        color: white;
+                    }
+
+                    .manager-btn:hover {
+                        transform: scale(1.02);
+                        opacity: 0.9;
+                    }
+
+                    .manager-btn:active {
+                        transform: scale(0.98);
+                    }
+
+                    .back-button {
+                        background: black !important;
+                        color: white !important;
+                    }
+
+                    .edit-tooltip {
+                        display: none;
+                    }
+                </style>
+            `;
+
+            function makeEditable(elementId, editIconId) {
+                const element = document.getElementById(elementId);
+                const editIcon = document.getElementById(editIconId);
+                
+                if (!element || !editIcon) return;
+
+                // Set default text if empty
+                if (!element.textContent.trim()) {
+                    element.textContent = `Telecaller ${elementId.replace(/[^0-9]/g, '')}`;
+                }
+
+                editIcon.addEventListener('click', () => {
+                    const currentText = element.textContent;
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = currentText;
+                    input.className = 'name-edit-input';
+                    
+                    element.textContent = '';
+                    element.appendChild(input);
+                    input.focus();
+
+                    input.addEventListener('blur', () => {
+                        element.textContent = input.value.trim() || currentText;
+                    });
+
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            element.textContent = input.value.trim() || currentText;
+                        }
+                    });
+                });
+            }
+
+            async function showManagerSelectionModal() {
+                try {
+                    const snapshot = await namesRef.once('value');
+                    const names = snapshot.val() || {};
+                    const managerModal = document.createElement('div');
+                    managerModal.className = 'modal';
+                    managerModal.style.display = 'block';
+                    
+                    // Define buttons to exclude
+                    const excludedButtons = [1,2,3,5,6,7,8,9,10];
+                    
+                    // Filter out excluded buttons when creating the HTML
+                    const buttonsHtml = Array.from({ length: 11 }, (_, i) => {
+                        const number = i;
+                        if (excludedButtons.includes(number)) return ''; // Skip excluded buttons
+                        
+                        const nameKey = `telecaller${getNumberWord(number)}`;
+                        const storedName = names[nameKey] || `Telecaller ${number}`;
+                        
+                        return `
+                            <div class="manager-button-container">
+                                <button id="admin${number}Btn" class="manager-btn">
+                                    <span class="button-number">${number}.</span>
+                                    <span id="admin${number}Name">${storedName}</span>
+                                </button>
+                                <span class="edit-icon" id="editAdmin${number}">
+                                    <img src="images/editicon.png" alt="Edit" style="width: 33px; height: 33px;">
+                                </span>
+                            </div>
+                        `;
+                    }).filter(html => html !== '').join(''); // Remove empty strings from excluded buttons
+
+                    managerModal.innerHTML = `
+                        ${editStyles}
+                        <div class="modal-content">
+                            <button class="back-button" style="position: absolute; top: 15px; left: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                                ← Back
+                            </button>
+                            <h2>Select Telecaller</h2>
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                ${buttonsHtml}
+                            </div>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="save-button">Save</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(managerModal);
+
+                    // Add back button handler
+                    managerModal.querySelector('.back-button').addEventListener('click', () => {
+                        managerModal.remove();
+                    });
+
+                    // Make names editable (only for non-excluded buttons)
+                    for(let i = 0; i <= 10; i++) {
+                        if (!excludedButtons.includes(i)) {
+                            makeEditable(`admin${i}Name`, `editAdmin${i}`);
+                        }
+                    }
+
+                    // Add save button functionality
+                    managerModal.querySelector('.save-button').addEventListener('click', async () => {
+                        try {
+                            const updatedNames = {};
+                            for(let i = 0; i <= 10; i++) {
+                                if (!excludedButtons.includes(i)) {
+                                    const nameElement = document.getElementById(`admin${i}Name`);
+                                    if (nameElement) {
+                                        updatedNames[`telecaller${getNumberWord(i)}`] = nameElement.textContent;
+                                    }
+                                }
+                            }
+                            await namesRef.update(updatedNames);
+                            alert('Names saved successfully!');
+                        } catch (error) {
+                            console.error('Error saving names:', error);
+                            alert('Failed to save names. Please try again.');
+                        }
+                    });
+
+                    // Add click handlers for admin buttons (only for non-excluded buttons)
+                    for(let i = 0; i <= 10; i++) {
+                        if (!excludedButtons.includes(i)) {
+                            const button = document.getElementById(`admin${i}Btn`);
+                            if (button) {
+                                button.addEventListener('click', async () => {
+                                    const adminNumber = i.toString();
+                                    const adminEmail = `admin${adminNumber}@gmail.com`;
+                                    const telecallerEmail = `telecaller${adminNumber}@gmail.com`;
+                                    
+                                    // Set localStorage values first
+                                    localStorage.setItem('selectedTelecaller', telecallerEmail);
+                                    localStorage.setItem('adminEmail', adminEmail);
+                                    localStorage.setItem('isManager', 'true');
+                                    localStorage.setItem('selectedManagerName', document.getElementById(`admin${adminNumber}Name`).textContent);
+                                    
+                                    // Open dashboard immediately
+                                    const dashboardWindow = window.open('maindashboard.html', '_blank');
+                                    
+                                    try {
+                                        await firebase.auth().signInWithEmailAndPassword(adminEmail, 'admin@123');
+                                        managerModal.remove();
+                                    } catch (authError) {
+                                        console.error('Auth error:', authError);
+                                        if (authError.code === 'auth/user-not-found' || 
+                                            authError.code === 'auth/wrong-password' ||
+                                            authError.code === 'auth/invalid-email') {
+                                            dashboardWindow.close();
+                                            alert("Authentication failed. Please try again.");
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('Error fetching names:', error);
+                    alert('Failed to load telecaller names. Please try again.');
+                }
+            }
+
+            function showTelecallerSelectionModal() {
+                const telecallerModal = document.createElement('div');
+                telecallerModal.className = 'modal';
+                telecallerModal.style.display = 'block';
+                
+                const excludedButtons = [1,2,3,5,6,7,8,9,10]; // Button numbers to exclude
+                
+                // Use cached names or empty object if cache not ready
+                const names = cachedNames || {};
+                
+                // Filter out excluded buttons before creating HTML
+                const buttonsHtml = Array.from({ length: 11 }, (_, i) => {
+                    const number = i; // Changed from i + 1 to i to include 0
+                    // Skip excluded button numbers completely
+                    if (excludedButtons.includes(number)) {
+                        return ''; // Return empty string for excluded button
+                    }
+                    
+                    const nameKey = `telecaller${getNumberWord(number)}`;
+                    const storedName = names[nameKey] || `Telecaller ${number}`;
+                    
+                    return `
+                        <div class="manager-button-container">
+                            <button id="telecaller${number}Btn" class="manager-btn">
+                                <span class="button-number">${number}.</span>
+                                <span>${storedName}</span>
+                            </button>
+                        </div>
+                    `;
+                }).filter(html => html !== '').join(''); // Filter out empty strings
+                
+                telecallerModal.innerHTML = `
+                    ${editStyles}
+                    <div class="modal-content">
+                        <button class="back-button" style="position: absolute; top: 15px; left: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                            ← Back
+                        </button>
+                        <h2>Select Telecaller</h2>
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            ${buttonsHtml}
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(telecallerModal);
+
+                // Add event listeners
+                telecallerModal.querySelector('.back-button').addEventListener('click', () => {
+                    telecallerModal.remove();
+                });
+
+                // Add click handlers for each button
+                for(let i = 0; i <= 10; i++) { // Changed from i = 1 to i = 0
+                    if (!excludedButtons.includes(i)) {
+                        const button = document.getElementById(`telecaller${i}Btn`);
+                        if (button) {
+                            button.addEventListener('click', () => {
+                                const telecallerEmail = `telecaller${i}@gmail.com`;
+                                localStorage.setItem('telecallerEmail', telecallerEmail);
+                                
+                                // Open dialpad first
+                                const dialpadWindow = window.open('dialpad.html', '_blank');
+                                
+                                // Then authenticate in background
+                                firebase.auth().signInWithEmailAndPassword(telecallerEmail, 'telecaller@123')
+                                    .then(() => {
+                                        telecallerModal.remove();
+                                    })
+                                    .catch(error => {
+                                        console.error('Auth error:', error);
+                                        dialpadWindow.close();
+                                        alert("Authentication failed. Please try again.");
+                                    });
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 1. Update the createAdminBtn click handler to use cached email instantly
+            createAdminBtn.addEventListener('click', function() {
+                // Immediately show modal and use cached email if available
+                passwordModal.style.display = 'none';
+                createAdminModal.style.display = 'block';
+                
+                if (window.cachedAdminEmail) {
+                    // Use cached email instantly
+                    document.getElementById('newAdminEmail').value = window.cachedAdminEmail;
+                    document.getElementById('newAdminEmail').setAttribute('value', window.cachedAdminEmail);
+                    document.getElementById('newAdminEmail').readOnly = true;
+                    // Focus on password field immediately
+                    document.getElementById('newAdminPassword').focus();
+                }
+                
+                // Still fetch fresh data in background
+                const allNumbers = Array.from({length: 11}, (_, i) => i);
+                const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+                
+                firebase.database().ref('adminEmailids').child(adminEmailKey).once('value')
+                    .then(snapshot => {
+                        const savedEmail = snapshot.val();
+                        if (savedEmail && savedEmail !== window.cachedAdminEmail) {
+                            document.getElementById('newAdminEmail').value = savedEmail;
+                            document.getElementById('newAdminEmail').setAttribute('value', savedEmail);
+                            window.cachedAdminEmail = savedEmail;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching admin email:', error);
+                    });
+            });
+
+            // Add these new handlers
+            document.getElementById('verifySecretKey').addEventListener('click', function() {
+                const secretKey = document.getElementById('secretKeyInput').value;
+                if (secretKey === 'admin@gmail.com') {
+                    secretKeyModal.style.display = 'none';
+                    createAdminModal.style.display = 'block';
+                    document.getElementById('secretKeyInput').value = ''; // Clear the input
+                } else {
+                    alert('Invalid secret key');
+                }
+            });
+
+            secretKeyModal.querySelector('.back-btn').addEventListener('click', function() {
+                secretKeyModal.style.display = 'none';
+                passwordModal.style.display = 'block';
+                document.getElementById('secretKeyInput').value = ''; // Clear the input
+            });
+
+            // Modify the createAccountBtn click handler
+            document.getElementById('createAccountBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('newAdminEmail').value;
+                const password = document.getElementById('newAdminPassword').value;
+
+                if (!email || !password) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                // First authenticate with Google
+                authenticatePasswordChange(email)
+                    .then(() => {
+                        // Get all numbers from 0 to 10 (not 1 to 10)
+                        const allNumbers = Array.from({length: 11}, (_, i) => i);
+                        const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                        const adminKey = `admin${missingNumbers.join('-')}password`;
+
+                        // Save to Firebase with dynamic key based on missing numbers
+                        firebase.database().ref('adminCredentials').child(adminKey).set({
+                            email: email,
+                            password: password
+                        })
+                        .then(() => {
+                            // Show success message immediately after Firebase save
+                            const successMessage = document.getElementById('successMessage');
+                            successMessage.textContent = 'Password changed successfully!';
+                            successMessage.classList.add('show');
+                            
+                            // Close modals and clear form
+                            createAdminModal.style.display = 'none';
+                            passwordModal.style.display = 'block';
+                            document.getElementById('newAdminPassword').value = '';
+                            
+                            // Remove success message after 1.5 seconds
+                            setTimeout(() => {
+                                successMessage.classList.remove('show');
+                            }, 1500);
+                        })
+                        .catch((error) => {
+                            console.error('Error saving new password:', error);
+                            alert('Failed to save password. Please try again.');
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Authentication error:', error);
+                        if (error.code === 'auth/popup-blocked') {
+                            alert('Please allow popups for this site to authenticate');
+                        } else if (error.code === 'auth/cancelled-popup-request') {
+                            // User closed the popup, no need to show error
+                        } else {
+                            alert(error.message || 'Authentication failed. Please try again.');
+                        }
+                    });
+            });
+
+            // Add this script to handle copy/paste functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                // Copy functionality
+                document.getElementById('copyIcon').addEventListener('click', function() {
+                    const emailInput = document.getElementById('emailInput');
+                    navigator.clipboard.writeText(emailInput.value)
+                        .then(() => {
+                            // Visual feedback for copy
+                            this.style.color = '#4CAF50';
+                            setTimeout(() => {
+                                this.style.color = 'currentColor';
+                            }, 1000);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy:', err);
+                        });
+                });
+
+                // Paste functionality
+                document.getElementById('pasteIcon').addEventListener('click', function() {
+                    navigator.clipboard.readText()
+                        .then(text => {
+                            document.getElementById('secretKeyInput').value = text;
+                            // Visual feedback for paste
+                            this.style.color = '#4CAF50';
+                            setTimeout(() => {
+                                this.style.color = 'currentColor';
+                            }, 1000);
+                        })
+                        .catch(err => {
+                            console.error('Failed to paste:', err);
+                        });
+                });
+            });
+
+            // Back button functionality for password change modal
+            document.querySelector('#createAdminModal .back-btn').addEventListener('click', function() {
+                document.getElementById('createAdminModal').style.display = 'none';
+                document.getElementById('passwordModal').style.display = 'block';
+            });
+
+            // Add the click handler for addDataButton
+            const addDataButton = document.getElementById('addDataButton');
+            if (addDataButton) {
+                addDataButton.addEventListener('click', function() {
+                    const telecallerModal = document.createElement('div');
+                    telecallerModal.className = 'modal';
+                    telecallerModal.style.display = 'block';
+                    
+                    telecallerModal.innerHTML = `
+                        <div class="modal-content">
+                            <button class="back-button" style="position: absolute; top: 15px; left: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                                ← Back
+                            </button>
+                            <h2>Select Telecaller</h2>
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                ${Array.from({ length: 11 }, (_, i) => {
+                                    const number = i;
+                                    if (excludedButtons.includes(number)) return '';
+                                    return `
+                                        <div class="manager-button-container">
+                                            <button id="addData_telecaller${number}Btn" class="manager-btn" style="width: 100%; padding: 15px; background: black; color: white; border: none; border-radius: 13px; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; text-align: left;">
+                                                <span style="margin-right: 15px; font-weight: bold; min-width: 30px;">${number}.</span>
+                                                <span id="addData_telecallerName${number}" style="flex-grow: 1;">Telecaller ${number}</span>
+                                            </button>
+                                        </div>
+                                    `;
+                                }).filter(button => button !== '').join('')}
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(telecallerModal);
+
+                    // Add click handlers for each telecaller button
+                    for(let i = 0; i <= 10; i++) {
+                        if (!excludedButtons.includes(i)) {
+                            const button = document.getElementById(`addData_telecaller${i}Btn`);
+                            if (button) {
+                                button.addEventListener('click', () => {
+                                    // Show mobile number input modal
+                                    const mobileModal = document.createElement('div');
+                                    mobileModal.className = 'modal';
+                                    mobileModal.style.display = 'block';
+                                    
+                                    mobileModal.innerHTML = `
+                                        <div class="modal-content">
+                                            <button class="back-button" style="position: absolute; top: 15px; left: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                                                ← Back
+                                            </button>
+                                            <button class="activity-button" style="position: absolute; top: 15px; right: 15px; background: black; border: none; cursor: pointer; color: white; font-size: 16px; font-weight: 500; padding: 5px 10px; border-radius: 5px;">
+                                                My Activity
+                                            </button>
+                                            <h2 style="color: black; margin: 20px 0;">Enter Mobile Number</h2>
+                                            <div class="input-container">
+                                                <input type="tel" id="mobileNumberInput" class="credential-input" placeholder="Enter 10 digit mobile number" maxlength="10" pattern="[0-9]{10}" style="margin-bottom: 20px;">
+                                                <button class="submit-btn" style="width: 100%;">Submit</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                    
+                                    document.body.appendChild(mobileModal);
+
+                                    // Add event listeners AFTER modal is added to DOM
+                                    const mobileInput = mobileModal.querySelector('#mobileNumberInput');
+                                    mobileInput.addEventListener('input', function(e) {
+                                        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+                                    });
+
+                                    // Back button handler
+                                    mobileModal.querySelector('.back-button').addEventListener('click', () => {
+                                        mobileModal.remove();
+                                        telecallerModal.style.display = 'block';
+                                    });
+
+                                    // ADD THIS NEW HANDLER - My Activity button
+                                    mobileModal.querySelector('.activity-button').addEventListener('click', () => {
+                                        console.log('My Activity clicked for telecaller:', i);
+                                        try {
+                                            localStorage.setItem('showIncomingOnly', 'true');
+                                            localStorage.setItem('selectedTelecaller', `telecaller${i}@gmail.com`);
+                                            window.open('clicktocall.html', '_blank');
+                                        } catch (error) {
+                                            console.error('Error in My Activity click:', error);
+                                        }
+                                    });
+
+                                    // Submit button handler
+                                    mobileModal.querySelector('.submit-btn').addEventListener('click', () => {
+                                        const mobileNumber = mobileInput.value;
+                                        if (mobileNumber.length === 10) {
+                                            // Create and show the Call Status popup
+                                            const statusModal = document.createElement('div');
+                                            statusModal.className = 'popup-overlay';
+                                            statusModal.id = 'popupOverlay2';
+                                            statusModal.style.display = 'flex';
+                                            
+                                            statusModal.innerHTML = `
+                                                <div class="popup-card-2">
+                                                    <div class="popup-title">Call Status</div>
+                                                    <div class="popup-buttons-2">
+                                                        <button class="popup-button-2 not-interested-button" id="notInterestedBtn">Not Interested</button>
+                                                        <button class="popup-button-2 interested-button" id="interestedBtn">Interested</button>
+                                                        <button class="popup-button-2 callback-button" id="callbackBtn">Callback</button>
+                                                    </div>
+                                                </div>
+                                            `;
+
+                                            document.body.appendChild(statusModal);
+
+                                            // Add click handlers for status buttons using direct IDs
+                                            document.getElementById('notInterestedBtn').addEventListener('click', function() {
+                                                handleStatusClick('Not Interested');
+                                            });
+
+                                            document.getElementById('interestedBtn').addEventListener('click', function() {
+                                                handleStatusClick('Interested');
+                                            });
+
+                                            document.getElementById('callbackBtn').addEventListener('click', function() {
+                                                handleStatusClick('Callback');
+                                            });
+
+                                            // Function to handle status button clicks
+                                            function handleStatusClick(status) {
+                                                const callData = {
+                                                    dateTime: getCurrentDateTime(),
+                                                    duration: '<img src="images/incoming-calls.png" width="20" height="20" alt="Incoming Call" >Incoming ',
+                                                    notes: status,
+                                                    number: mobileNumber,
+                                                    status: status,
+                                                    source: "Incoming Calls",  // Added new field
+                                                    telecallerEmail: `telecaller${i}@gmail.com`,
+                                                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                                                };
+
+                                                // First check if number exists
+                                                firebase.database().ref(`telecaller${i}`)
+                                                    .orderByChild('number')
+                                                    .equalTo(mobileNumber)
+                                                    .once('value')
+                                                    .then(snapshot => {
+                                                        if (snapshot.exists()) {
+                                                            // Get the key of existing entry
+                                                            const existingKey = Object.keys(snapshot.val())[0];
+                                                            
+                                                            // Remove existing entry
+                                                            return firebase.database().ref(`telecaller${i}/${existingKey}`).remove()
+                                                                .then(() => {
+                                                                    // After removal, save new data
+                                                                    return firebase.database().ref(`telecaller${i}`).push(callData);
+                                                                });
+                                                        } else {
+                                                            // If number doesn't exist, save directly
+                                                            return firebase.database().ref(`telecaller${i}`).push(callData);
+                                                        }
+                                                    })
+                                                    .then(() => {
+                                                        // Show success message
+                                                        const successMessage = document.getElementById('successMessage');
+                                                        successMessage.textContent = 'Call status saved successfully!';
+                                                        successMessage.classList.add('show');
+                                                        
+                                                        // Hide success message after 3 seconds
+                                                        setTimeout(() => {
+                                                            successMessage.classList.remove('show');
+                                                        }, 3000);
+
+                                                        // Close all modals
+                                                        statusModal.remove();
+                                                        mobileModal.remove();
+                                                        telecallerModal.remove();
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error saving call data:', error);
+                                                        alert('Error saving data. Please try again.');
+                                                    });
+                                            }
+
+                                            // Updated getCurrentDateTime function for 12-hour format with AM/PM
+                                            function getCurrentDateTime() {
+                                                const now = new Date();
+                                                const day = String(now.getDate()).padStart(2, '0');
+                                                const month = String(now.getMonth() + 1).padStart(2, '0');
+                                                const year = now.getFullYear().toString().slice(-2);
+                                                const time = now.toLocaleTimeString('en-US', { 
+                                                    hour: '2-digit', 
+                                                    minute: '2-digit',
+                                                    hour12: true  // Changed to true for 12-hour format
+                                                });
+                                                return `${day}/${month}/${year} ${time}`;
+                                            }
+                                        } else {
+                                            alert('Please enter a valid 10-digit mobile number');
+                                        }
+                                    });
+
+                                    // Hide telecaller modal while showing mobile modal
+                                    telecallerModal.style.display = 'none';
+                                });
+                            }
+                        }
+                    }
+
+                    // Back button handler for telecaller modal
+                    telecallerModal.querySelector('.back-button').addEventListener('click', () => {
+                        telecallerModal.remove();
+                    });
+
+                    // Fetch and update telecaller names from Firebase
+                    firebase.database().ref('telecallerNames').once('value')
+                        .then(snapshot => {
+                            const names = snapshot.val() || {};
+                            for(let i = 0; i <= 10; i++) {
+                                if (!excludedButtons.includes(i)) {
+                                    const nameSpan = document.getElementById(`addData_telecallerName${i}`);
+                                    if (nameSpan) {
+                                        const nameKey = `telecaller${getNumberWord(i)}`;
+                                        if (names[nameKey]) {
+                                            nameSpan.textContent = names[nameKey];
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching telecaller names:', error);
+                        });
+                });
+            }
+        });
+
+        // After successful login
+        function onSuccessfulLogin(email) {
+            localStorage.setItem('managerEmail', email);
+            // Redirect to maindashboard.html or perform other actions
+        }
+
+        // Example login function
+        function login(email, password) {
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Login successful
+                    const user = userCredential.user;
+                    onSuccessfulLogin(user.email);
+                })
+                .catch((error) => {
+                    // Handle login errors
+                    console.error('Login error:', error);
+                });
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Show the install button or prompt
+            if (deferredPrompt) {
+                // Show install prompt
+                deferredPrompt.prompt();
+                
+                // Wait for the user to respond to the prompt
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        });
+
+        // If the app is already installed, hide the install prompt
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('App was installed');
+        });
+
+        // Add this script to force clear service worker cache
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+            caches.keys().then(function(cacheNames) {
+                return Promise.all(
+                    cacheNames.map(function(cacheName) {
+                        return caches.delete(cacheName);
+                    })
+                );
+            });
+        }
+
+        // Helper function to convert numbers to words for Firebase keys
+        function getNumberWord(num) {
+            const words = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+            return words[num];
+        }
+
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // Update profile pictures
+                const profilePic = user.photoURL || 'images/default-profile.png';
+                document.getElementById('userProfilePic').src = profilePic;
+                document.getElementById('dropdownProfilePic').src = profilePic;
+                
+                // Update user info
+                document.getElementById('userName').textContent = user.displayName || 'User';
+                document.getElementById('userEmail').textContent = user.email;
+            }
+        });
+
+        // Toggle dropdown
+        const userProfilePic = document.getElementById('userProfilePic');
+        const profileDropdown = document.getElementById('profileDropdown');
+
+        userProfilePic.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (profileDropdown.classList.contains('show') && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.remove('show');
+            }
+        });
+
+        // Sign out functionality
+        document.getElementById('signOutBtn').addEventListener('click', () => {
+            firebase.auth().signOut().then(() => {
+                // Clear any stored data
+                sessionStorage.clear();
+                localStorage.clear();
+                // Redirect to auth page
+                window.location.replace('auth.html');
+            }).catch((error) => {
+                console.error('Sign out error:', error);
+            });
+        });
+
+        // Add this code right after your Firebase initialization
+        const GOOGLE_PROFILE_KEY = 'googleAuthProfile';
+
+        // Function to store Google profile
+        const storeGoogleProfile = (user) => {
+            if (user && user.providerData[0].providerId === 'google.com') {
+                const profileData = {
+                    photoURL: user.photoURL,
+                    displayName: user.displayName,
+                    email: user.email,
+                    isGoogleAuth: true
+                };
+                localStorage.setItem(GOOGLE_PROFILE_KEY, JSON.stringify(profileData));
+                console.log('Google profile stored:', profileData); // Debug log
+            }
+        };
+
+        // Function to restore Google profile display
+        const restoreGoogleProfile = () => {
+            const profileData = localStorage.getItem(GOOGLE_PROFILE_KEY);
+            if (profileData) {
+                const profile = JSON.parse(profileData);
+                if (profile.isGoogleAuth) {
+                    const userProfilePic = document.getElementById('userProfilePic');
+                    const dropdownProfilePic = document.getElementById('dropdownProfilePic');
+                    const userName = document.getElementById('userName');
+                    const userEmail = document.getElementById('userEmail');
+
+                    if (userProfilePic) userProfilePic.src = profile.photoURL;
+                    if (dropdownProfilePic) dropdownProfilePic.src = profile.photoURL;
+                    if (userName) userName.textContent = profile.displayName;
+                    if (userEmail) userEmail.textContent = profile.email;
+                    
+                    console.log('Google profile restored:', profile); // Debug log
+                }
+            }
+        };
+
+        // Find the existing onAuthStateChanged and add this inside
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // Store Google profile when it's a Google sign-in
+                storeGoogleProfile(user);
+                // Always restore Google profile for display
+                restoreGoogleProfile();
+                
+                // ... rest of your existing code ...
+            }
+        });
+
+        // Add these event listeners after your existing DOMContentLoaded event
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                restoreGoogleProfile();
+                console.log('Profile restored on visibility change'); // Debug log
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            restoreGoogleProfile();
+            console.log('Profile restored on window focus'); // Debug log
+        });
+
+        // Modify your existing sign out button handler
+        document.getElementById('signOutBtn').addEventListener('click', () => {
+            firebase.auth().signOut().then(() => {
+                // Store admin credentials if they exist
+                const adminEmail = localStorage.getItem('rememberedManagerEmail');
+                const adminPassword = localStorage.getItem('rememberedManagerPassword');
+                
+                // Clear storages but keep Google profile data
+                const googleProfile = localStorage.getItem(GOOGLE_PROFILE_KEY);
+                
+                sessionStorage.clear();
+                localStorage.clear();
+                
+                // Restore necessary data
+                if (googleProfile) {
+                    localStorage.setItem(GOOGLE_PROFILE_KEY, googleProfile);
+                }
+                if (adminEmail && adminPassword) {
+                    localStorage.setItem('rememberedManagerEmail', adminEmail);
+                    localStorage.setItem('rememberedManagerPassword', adminPassword);
+                }
+                
+                window.location.replace('auth.html');
+            }).catch((error) => {
+                console.error('Sign out error:', error);
+            });
+        });
+
+        // Add this to handle telecaller button clicks
+        const handleTelecallerAuth = (telecallerEmail) => {
+            // Store the telecaller email but don't update the profile display
+            localStorage.setItem('telecallerEmail', telecallerEmail);
+            // Immediately restore Google profile
+            restoreGoogleProfile();
+        };
+
+        // Add this to handle marketing manager auth
+        const handleManagerAuth = (adminEmail) => {
+            // Store the admin email but don't update the profile display
+            localStorage.setItem('adminEmail', adminEmail);
+            // Immediately restore Google profile
+            restoreGoogleProfile();
+        };
+
+        // Add these event listeners after your existing DOMContentLoaded event
+        document.addEventListener('DOMContentLoaded', function() {
+            const createAdminBtn = document.getElementById('createAdminBtn');
+            const createAdminModal = document.getElementById('createAdminModal');
+            const createAccountBtn = document.getElementById('createAccountBtn');
+            const passwordModal = document.getElementById('passwordModal');
+            const newPasswordToggle = document.getElementById('newPasswordToggle');
+            const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
+            const newAdminPassword = document.getElementById('newAdminPassword');
+            const confirmAdminPassword = document.getElementById('confirmAdminPassword');
+
+            // Show create admin modal
+            createAdminBtn.addEventListener('click', function() {
+                const allNumbers = Array.from({length: 11}, (_, i) => i);
+                const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+
+                // Fetch from adminEmailids path
+                firebase.database().ref('adminEmailids').child(adminEmailKey).once('value')
+                    .then(snapshot => {
+                        const storedEmail = snapshot.val();
+                        if (storedEmail) {
+                            // Show create admin modal immediately
+                            passwordModal.style.display = 'none';
+                            createAdminModal.style.display = 'block';
+                            
+                            // Set email field
+                            document.getElementById('newAdminEmail').value = storedEmail;
+                            document.getElementById('newAdminEmail').setAttribute('value', storedEmail);
+                            document.getElementById('newAdminEmail').readOnly = true;
+                            
+                            // Focus on password field
+                            document.getElementById('newAdminPassword').focus();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching admin email:', error);
+                    });
+            });
+
+            // Handle password visibility toggles
+            newPasswordToggle.addEventListener('click', function() {
+                togglePasswordVisibility(newAdminPassword, newPasswordToggle);
+            });
+
+            confirmPasswordToggle.addEventListener('click', function() {
+                togglePasswordVisibility(confirmAdminPassword, confirmPasswordToggle);
+            });
+
+            // Back button functionality
+            createAdminModal.querySelector('.back-btn').addEventListener('click', function() {
+                document.getElementById('createAdminModal').style.display = 'none';
+                document.getElementById('passwordModal').style.display = 'block';
+            });
+
+            // Create account functionality
+            createAccountBtn.addEventListener('click', function() {
+                const email = document.getElementById('newAdminEmail').value;
+                const password = document.getElementById('newAdminPassword').value;
+
+                // Basic validation
+                if (!email || !password) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                try {
+                    // Get all numbers from 1 to 10
+                    const allNumbers = Array.from({length: 10}, (_, i) => i + 1);
+                    
+                    // Find missing numbers (numbers not in excludedButtons)
+                    const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                    
+                    // Create the dynamic admin key
+                    const adminKey = `admin${missingNumbers.join('-')}password`;
+
+                    // Store admin credentials in Firebase Realtime Database
+                    firebase.database().ref('adminCredentials').child(adminKey).set({
+                        email: email,
+                        password: password
+                    })
+                    .then(() => {
+                        // Show success message
+                        const successMessage = document.getElementById('successMessage');
+                        successMessage.textContent = 'Password changed successfully!';
+                        successMessage.classList.add('show');
+                        
+                        // Close modals and clear form
+                        createAdminModal.style.display = 'none';
+                        passwordModal.style.display = 'block';
+                        document.getElementById('newAdminPassword').value = '';
+                        
+                        // Hide success message after delay
+                        setTimeout(() => {
+                            successMessage.classList.remove('show');
+                        }, 3000);
+                    })
+                    .catch((error) => {
+                        console.error('Firebase error:', error);
+                        alert('Error creating account: ' + error.message);
+                    });
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating the account');
+                }
+            });
+
+            function togglePasswordVisibility(passwordInput, toggleButton) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleButton.textContent = '🔒';
+                } else {
+                    passwordInput.type = 'password';
+                    toggleButton.textContent = '👁️';
+                }
+            }
+        });
+
+        // Add this script to handle copy/paste functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Copy functionality
+            document.getElementById('copyIcon').addEventListener('click', function() {
+                const emailInput = document.getElementById('emailInput');
+                navigator.clipboard.writeText(emailInput.value)
+                    .then(() => {
+                        // Visual feedback for copy
+                        this.style.color = '#4CAF50';
+                        setTimeout(() => {
+                            this.style.color = 'currentColor';
+                        }, 1000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy:', err);
+                    });
+            });
+
+            // Paste functionality
+            document.getElementById('pasteIcon').addEventListener('click', function() {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        document.getElementById('secretKeyInput').value = text;
+                        // Visual feedback for paste
+                        this.style.color = '#4CAF50';
+                        setTimeout(() => {
+                            this.style.color = 'currentColor';
+                        }, 1000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to paste:', err);
+                    });
+            });
+        });
+
+        // Fix for Create Admin Account back button
+        document.querySelector('#createAdminModal .back-btn').addEventListener('click', function() {
+            document.getElementById('createAdminModal').style.display = 'none';
+            document.getElementById('passwordModal').style.display = 'block';
+        });
+
+        // Find these existing event listeners and modify them
+        document.addEventListener('DOMContentLoaded', function() {
+            const globalAdminEmail = document.getElementById('globalAdminEmail');
+            const saveEmailBtn = document.getElementById('saveEmailBtn');
+            
+            // Function to update email fields
+            function updateEmailFields(newEmail) {
+                // Update email in login modal (admin login details)
+                const emailInput = document.getElementById('emailInput');
+                if (emailInput) {
+                    emailInput.value = newEmail;
+                    emailInput.setAttribute('value', newEmail); // Ensure the value attribute is also updated
+                }
+                
+                // Update email in create admin modal (password change)
+                const newAdminEmail = document.getElementById('newAdminEmail');
+                if (newAdminEmail) {
+                    newAdminEmail.value = newEmail;
+                    newAdminEmail.setAttribute('value', newEmail);
+                }
+                
+                // Store in localStorage
+                localStorage.setItem('globalAdminEmail', newEmail);
+                
+                // Show success feedback
+                saveEmailBtn.classList.add('saved');
+                setTimeout(() => {
+                    saveEmailBtn.classList.remove('saved');
+                }, 2000);
+            }
+
+            // Save email when checkmark is clicked
+            saveEmailBtn.addEventListener('click', function() {
+                const newEmail = globalAdminEmail.value || 'admin@gmail.com';
+                updateEmailFields(newEmail);
+            });
+
+            // Load saved email on page load
+            const savedEmail = localStorage.getItem('globalAdminEmail');
+            if (savedEmail) {
+                globalAdminEmail.value = savedEmail;
+            }
+        });
+
+        // Initialize EmailJS with your public key
+        emailjs.init("MjFZTQvnIViDYN_Gr");
+
+        // Add this right after your Firebase initialization
+        const globalEmailRef = firebase.database().ref('systemConfig/globalAdminEmail');
+
+        // Modify the existing updateEmailFields function
+            function updateEmailFields(newEmail) {
+            // Update UI fields
+                const emailInput = document.getElementById('emailInput');
+                const newAdminEmail = document.getElementById('newAdminEmail');
+            
+                if (emailInput) {
+                    emailInput.value = newEmail;
+                emailInput.setAttribute('value', newEmail);
+                emailInput.readOnly = true;
+                }
+                
+                if (newAdminEmail) {
+                    newAdminEmail.value = newEmail;
+                    newAdminEmail.setAttribute('value', newEmail);
+                newAdminEmail.readOnly = true;
+            }
+            
+            // Save to Firebase
+            globalEmailRef.set(newEmail)
+                    .then(() => {
+                // Show success feedback
+            const saveEmailBtn = document.getElementById('saveEmailBtn');
+                    if (saveEmailBtn) {
+                saveEmailBtn.classList.add('saved');
+                setTimeout(() => {
+                    saveEmailBtn.classList.remove('saved');
+                }, 2000);
+            }
+                })
+                .catch(error => {
+                    console.error('Error saving email:', error);
+                    alert('Failed to save email. Please try again.');
+                });
+        }
+
+        // Add this to fetch and set email on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            globalEmailRef.once('value')
+                .then(snapshot => {
+                    const savedEmail = snapshot.val() || 'admin@gmail.com';
+                    
+                    // Update global admin email input
+            const globalAdminEmail = document.getElementById('globalAdminEmail');
+                    if (globalAdminEmail) {
+                globalAdminEmail.value = savedEmail;
+            }
+                    
+                    // Update both modal email fields
+                    updateEmailFields(savedEmail);
+                })
+                .catch(error => {
+                    console.error('Error fetching email:', error);
+                });
+        });
+
+        // Update the save email click handler
+        document.getElementById('saveEmailBtn').addEventListener('click', function() {
+            const newEmail = document.getElementById('globalAdminEmail').value || 'admin@gmail.com';
+                updateEmailFields(newEmail);
+            });
+
+        // Add real-time listener for email changes
+        globalEmailRef.on('value', snapshot => {
+            const email = snapshot.val() || 'admin@gmail.com';
+                const emailInput = document.getElementById('emailInput');
+                const newAdminEmail = document.getElementById('newAdminEmail');
+            
+                if (emailInput) {
+                emailInput.value = email;
+                emailInput.setAttribute('value', email);
+                }
+                
+                if (newAdminEmail) {
+                newAdminEmail.value = email;
+                newAdminEmail.setAttribute('value', email);
+            }
+        });
+
+        // Add this code right after Firebase initialization, before any existing code
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        // Add this new function for Google Authentication
+        function authenticateWithGoogle(email) {
+            googleProvider.setCustomParameters({
+                prompt: 'select_account',
+                login_hint: email
+            });
+            return firebase.auth().signInWithPopup(googleProvider);
+        }
+
+        // Add this code right before the existing createAccountBtn click handler
+        const originalCreateAccountBtnClick = document.getElementById('createAccountBtn').onclick;
+        document.getElementById('createAccountBtn').onclick = function(e) {
+            e.preventDefault();
+            const email = document.getElementById('newAdminEmail').value;
+            
+            // First do Google Authentication
+            authenticateWithGoogle(email)
+                .then((result) => {
+                    if (result.user.email === email) {
+                        // If authentication successful, call the original click handler
+                        originalCreateAccountBtnClick.call(this);
+                    } else {
+                        alert('Please authenticate with the correct admin email account');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Authentication error:', error);
+                    if (error.code === 'auth/popup-blocked') {
+                        alert('Please allow popups for this site to authenticate');
+                    } else if (error.code === 'auth/cancelled-popup-request') {
+                        // User closed the popup, no need to show error
+                    } else {
+                        alert('Authentication failed. Please try again.');
+                    }
+                });
+        };
+
+        // Update the authenticatePasswordChange function
+        function authenticatePasswordChange(email) {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            provider.setCustomParameters({
+                prompt: 'select_account',  // Changed from 'login' to 'select_account'
+                login_hint: email
+            });
+            
+            const submitBtn = document.getElementById('createAccountBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Waiting for authentication...';
+            
+            return new Promise((resolve, reject) => {
+                // Use the main Firebase instance instead of passwordChangeAuth
+                firebase.auth()
+                    .signInWithPopup(provider)
+                    .then((result) => {
+                        if (result.user.email === email) {
+                            resolve(true);
+                        } else {
+                            reject(new Error('Please use the correct admin email account'));
+                        }
+                    })
+                    .catch(reject)
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Save Changes';
+                        // No need to sign out here as we want to maintain the session
+                    });
+            });
+        }
+
+        // Add success message styles if not already present
+        const successMessageStyles = `
+            .success-message {
+                position: fixed;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-20px);
+                background-color: #4CAF50;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                opacity: 0;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 9999;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 250px;
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .success-message.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        `;
+
+        // Add styles to document if not already present
+        if (!document.querySelector('#successMessageStyles')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'successMessageStyles';
+            styleSheet.textContent = successMessageStyles;
+            document.head.appendChild(styleSheet);
+        }
+
+        // Find and update the hamburger menu email save functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('navMenu');
+            const adminEmailContainer = document.querySelector('.admin-email-container');
+            const saveEmailBtn = document.getElementById('saveEmailBtn');
+            const globalAdminEmail = document.getElementById('globalAdminEmail');
+            
+            // Initially hide the email container
+            adminEmailContainer.style.display = 'none';
+            
+            let pressTimer = null;
+            let isLongPress = false;
+            
+            // Handle mousedown/touchstart
+            function startPress(e) {
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    adminEmailContainer.style.display = 'block';
+                    adminEmailContainer.style.opacity = '1';
+                }, 3000);
+            }
+            
+            // Handle mouseup/touchend
+            function endPress() {
+                clearTimeout(pressTimer);
+                if (!isLongPress) {
+                    navMenu.classList.toggle('open');
+                    hamburger.classList.toggle('open');
+                }
+                setTimeout(() => {
+                    isLongPress = false;
+                }, 100);
+            }
+            
+            // Update email save functionality - ONLY saves to adminEmails path
+            saveEmailBtn.addEventListener('click', function() {
+                const newEmail = globalAdminEmail.value || 'admin@gmail.com';
+                
+                // Get all numbers from 0 to 10
+                const allNumbers = Array.from({length: 11}, (_, i) => i);
+                
+                // Find missing numbers (numbers not in excludedButtons)
+                const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+                
+                // Create the dynamic admin key for email
+                const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+                
+                // ONLY save to adminEmails path
+                firebase.database().ref('adminEmails').child(adminEmailKey).set(newEmail)
+                    .then(() => {
+                        saveEmailBtn.classList.add('saved');
+                        setTimeout(() => {
+                            saveEmailBtn.classList.remove('saved');
+                        }, 2000);
+                    })
+                    .catch(error => {
+                        console.error('Error saving email:', error);
+                        alert('Failed to save email. Please try again.');
+                    });
+            });
+
+            // Add event listeners
+            hamburger.addEventListener('mousedown', startPress);
+            hamburger.addEventListener('touchstart', startPress);
+            hamburger.addEventListener('mouseup', endPress);
+            hamburger.addEventListener('touchend', endPress);
+            hamburger.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+        });
+
+        // Modify the updateEmailFields function
+        function updateEmailFields(newEmail) {
+            // Get all numbers from 0 to 10
+            const allNumbers = Array.from({length: 11}, (_, i) => i);
+            
+            // Find missing numbers (numbers not in excludedButtons)
+            const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+            
+            // Create the dynamic admin key for email
+            const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+
+            // Update UI fields
+            const emailInput = document.getElementById('emailInput');
+            const newAdminEmail = document.getElementById('newAdminEmail');
+            
+            if (emailInput) {
+                emailInput.value = newEmail;
+                emailInput.setAttribute('value', newEmail);
+                emailInput.readOnly = true;
+            }
+            
+            if (newAdminEmail) {
+                newAdminEmail.value = newEmail;
+                newAdminEmail.setAttribute('value', newEmail);
+                newAdminEmail.readOnly = true;
+            }
+            
+            // Save to Firebase with dynamic key
+            firebase.database().ref('adminEmails').child(adminEmailKey).set(newEmail)
+                .then(() => {
+                    const saveEmailBtn = document.getElementById('saveEmailBtn');
+                    if (saveEmailBtn) {
+                        saveEmailBtn.classList.add('saved');
+                        setTimeout(() => {
+                            saveEmailBtn.classList.remove('saved');
+                        }, 2000);
+                    }
+
+                    const successMessage = document.getElementById('successMessage');
+                    if (successMessage) {
+                        successMessage.classList.add('show');
+                        setTimeout(() => {
+                            successMessage.classList.remove('show');
+                        }, 3000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving email:', error);
+                    alert('Failed to save email. Please try again.');
+                });
+        }
+
+        // Update the email loading code
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the dynamic key based on excluded numbers
+            const allNumbers = Array.from({length: 11}, (_, i) => i);
+            const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+            const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+
+            // Load email using the dynamic key
+            firebase.database().ref('adminEmails').child(adminEmailKey).once('value')
+                .then(snapshot => {
+                    const savedEmail = snapshot.val() || 'admin@gmail.com';
+                    const globalAdminEmail = document.getElementById('globalAdminEmail');
+                    if (globalAdminEmail) {
+                        globalAdminEmail.value = savedEmail;
+                    }
+                    updateEmailFields(savedEmail);
+                })
+                .catch(error => {
+                    console.error('Error fetching email:', error);
+                });
+        });
+
+        // Remove the real-time listener for systemConfig and update it for the dynamic key
+        const allNumbers = Array.from({length: 11}, (_, i) => i);
+        const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+        const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+
+        firebase.database().ref('adminEmails').child(adminEmailKey).on('value', snapshot => {
+            const email = snapshot.val() || 'admin@gmail.com';
+            const emailInput = document.getElementById('emailInput');
+            const newAdminEmail = document.getElementById('newAdminEmail');
+            
+            // Just update the values silently - NO success message
+            if (emailInput) {
+                emailInput.value = email;
+                emailInput.setAttribute('value', email);
+            }
+            
+            if (newAdminEmail) {
+                newAdminEmail.value = email;
+                newAdminEmail.setAttribute('value', email);
+            }
+        });
+
+        // Add this near the top where other global variables are declared
+        let cachedAdminEmail = null;
+        // Pre-fetch admin email when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get dynamic key based on excluded buttons
+            const allNumbers = Array.from({length: 11}, (_, i) => i);
+            const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+            const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+            
+            // Pre-fetch and cache the email
+            firebase.database().ref('adminEmailids').child(adminEmailKey).once('value')
+                .then(snapshot => {
+                    cachedAdminEmail = snapshot.val() || 'admin@gmail.com';
+                })
+                .catch(error => console.error('Error pre-fetching admin email:', error));
+        });
+
+        // Modify the marketingManagerBtn click handler to use cached email
+        marketingManagerBtn.addEventListener('click', function() {
+            const modal = document.getElementById('passwordModal');
+            modal.style.display = 'block';
+            document.querySelector('.modal-content h2').textContent = 'Admin Login Details';
+            
+            // Use cached email for instant display
+            document.getElementById('emailInput').value = cachedAdminEmail;
+            document.getElementById('emailInput').setAttribute('value', cachedAdminEmail);
+            document.getElementById('emailInput').readOnly = true;
+            
+            // Pre-fill remembered credentials if they exist (only for password)
+            const rememberedPassword = localStorage.getItem('rememberedManagerPassword');
+            if (rememberedPassword) {
+                document.getElementById('passwordInput').value = rememberedPassword;
+                document.getElementById('rememberCheckbox').checked = true;
+            }
+            
+            // Focus on password input since email is fixed
+            document.getElementById('passwordInput').focus();
+        });
+
+        // 1. Pre-fetch and cache the email when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const allNumbers = Array.from({length: 11}, (_, i) => i);
+            const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+            const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+            
+            // Pre-fetch email and cache it
+            firebase.database().ref('adminEmailids').child(adminEmailKey).once('value')
+                .then(snapshot => {
+                    const savedEmail = snapshot.val();
+                    if (savedEmail) {
+                        // Cache the email in memory
+                        window.cachedAdminEmail = savedEmail;
+                    }
+                });
+        });
+
+        // 2. Update Marketing Manager button click handler to use cached email instantly
+        marketingManagerBtn.addEventListener('click', function() {
+            const modal = document.getElementById('passwordModal');
+            modal.style.display = 'block';
+            document.querySelector('.modal-content h2').textContent = 'Admin Login Details';
+            
+            // Immediately use cached email if available
+            if (window.cachedAdminEmail) {
+                document.getElementById('emailInput').value = window.cachedAdminEmail;
+                document.getElementById('emailInput').setAttribute('value', window.cachedAdminEmail);
+                document.getElementById('emailInput').readOnly = true;
+                document.getElementById('passwordInput').focus();
+            }
+            
+            // Still fetch fresh data in background to ensure it's up to date
+            const allNumbers = Array.from({length: 11}, (_, i) => i);
+            const missingNumbers = allNumbers.filter(num => !excludedButtons.includes(num));
+            const adminEmailKey = `admin${missingNumbers.join('-')}email`;
+            
+            firebase.database().ref('adminEmailids').child(adminEmailKey).once('value')
+                .then(snapshot => {
+                    const savedEmail = snapshot.val();
+                    if (savedEmail && savedEmail !== window.cachedAdminEmail) {
+                        document.getElementById('emailInput').value = savedEmail;
+                        document.getElementById('emailInput').setAttribute('value', savedEmail);
+                        window.cachedAdminEmail = savedEmail;
+                    }
+                });
+        });
+
+        // Remove any existing success message on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const successMessage = document.getElementById('successMessage');
+            if (successMessage) {
+                successMessage.classList.remove('show');
+            }
+        });
+
+        // Add the toggle functionality
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        const passwordInput = document.getElementById('newAdminPassword');
+
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function() {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleBtn.textContent = 'Hide';
+                } else {
+                    passwordInput.type = 'password';
+                    toggleBtn.textContent = 'Show';
+                }
+            });
+        }
+
+        // Add this new function near the top of your script section
+        function toggleButtonText() {
+            const button = document.getElementById('togglePasswordBtn');
+            const passwordInput = document.getElementById('newAdminPassword');
+            
+            if (button.textContent === 'Show') {
+                button.textContent = 'Hide';
+                passwordInput.type = 'text';  // Show the password
+            } else {
+                button.textContent = 'Show';
+                passwordInput.type = 'password';  // Hide the password
+            }
+        }
+
+        // Add this function in index.html where you handle telecaller button clicks
+        function openClickToCall(telecallerId) {
+            // Clear any existing data
+            localStorage.removeItem('currentTelecallerId');
+            
+            // Store new telecaller ID
+            localStorage.setItem('currentTelecallerId', telecallerId);
+            
+            // Log for debugging
+            console.log('Opening clicktocall for telecaller:', telecallerId);
+            
+            // Open in new window
+            window.open('clicktocall.html', '_blank');
+        }
+
+        // Make sure your telecaller buttons look like this:
+        /*
+        <button class="dial-btn" onclick="openClickToCall('0')">
+            Telecaller 0
+        </button>
+        */
+
+        
+
+        // Remove all other telecaller selection functions and keep only this one
+        function selectTelecaller(id) {
+            // Create credentials based on telecaller ID
+            const email = `telecaller${id}@gmail.com`;
+            const password = 'telecaller@123';
+            
+            console.log('Attempting authentication for:', email);
+
+            // Firebase authentication
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Authentication successful
+                    console.log('Authentication successful for:', email);
+                    
+                    // Store the authenticated telecaller ID in localStorage
+                    localStorage.setItem('currentTelecallerId', id);
+                    console.log('Stored telecaller ID:', id); // Debug log
+                    
+                    // Set up Click to Call button
+                    const clickToCallBtn = document.getElementById('clickToCallBtn');
+                    if (clickToCallBtn) {
+                        clickToCallBtn.onclick = () => {
+                            // Verify ID is still in localStorage before opening new window
+                            const storedId = localStorage.getItem('currentTelecallerId');
+                            console.log('Opening clicktocall with ID:', storedId);
+                            window.open('clicktocall.html', '_blank');
+                        };
+                    }
+                })
+                .catch((error) => {
+                    console.error('Authentication failed:', error.message);
+                    alert('Authentication failed. Please try again.');
+                });
+        }
+
+        // Add this right after creating the optionsModal
+        const activityBtn = optionsModal.querySelector('#activityBtn');
+        const activityDropdown = optionsModal.querySelector('#activityDropdown');
+
+        // Toggle dropdown on activity button click
+        activityBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            activityDropdown.style.display = activityDropdown.style.display === 'none' ? 'block' : 'none';
+            
+            // If opening dropdown, fetch and update counts
+            if (activityDropdown.style.display === 'block') {
+                updateActivityCounts();
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!activityBtn.contains(e.target) && !activityDropdown.contains(e.target)) {
+                activityDropdown.style.display = 'none';
+            }
+        });
+
+        // Function to update activity counts
+        async function updateActivityCounts() {
+            try {
+                const telecallerEmail = localStorage.getItem('telecallerEmail');
+                const telecallerName = telecallerEmail.split('@')[0];
+                const db = firebase.database();
+                
+                const snapshot = await db.ref(telecallerName).once('value');
+                const calls = snapshot.val() || {};
+
+                let counts = {
+                    unanswered: 0,
+                    interested: 0,
+                    callback: 0
+                };
+
+                Object.values(calls).forEach(call => {
+                    if (call.status === 'Unanswered') counts.unanswered++;
+                    if (call.status === 'Interested') counts.interested++;
+                    if (call.status === 'Callback') counts.callback++;
+                });
+
+                // Update count displays
+                optionsModal.querySelector('#unansweredCount').textContent = `(${counts.unanswered})`;
+                optionsModal.querySelector('#interestedCount').textContent = `(${counts.interested})`;
+                optionsModal.querySelector('#callbackCount').textContent = `(${counts.callback})`;
+
+            } catch (error) {
+                console.error('Error updating counts:', error);
+            }
+        }
+
+        // Add this to prevent dropdown from closing when clicking inside it
+        activityDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Add this function right after updateActivityCounts function:
+        function redirectToClickToCall(status) {
+            // Set the necessary localStorage flags
+            localStorage.setItem('showActivity', 'true');
+            localStorage.setItem('activityFilter', status);
+            
+            // Open clicktocall.html in new tab
+            window.open('clicktocall.html', '_blank');
+            
+            // Clean up modals
+            optionsModal.remove();
+            telecallerModal.remove();
+        }
+    </script>
+    
+    <footer style="position: fixed; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 0.8rem; color: var(--accent-color);">
+        &copy; 2025 All rights reserved.
+    </footer>
+
+    <!-- Add this right before the closing body tag -->
+    <img src="images/adddatabutton.png" alt="Add Data" id="addDataButton" style="position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; cursor: pointer; z-index: 1000;">
+
+    <!-- Add this right before the closing body tag, before the Add Data button -->
+    <div class="circular-text-container">
+        <svg class="circular-text" viewBox="0 0 100 100">
+            <defs>
+                <path id="circle" d="M50,12 A38,38 0 1,1 49.9,12"/>
+            </defs>
+            <text fill="#4CAF50" font-size="11" letter-spacing="3" font-weight="900">
+                <textPath href="#circle" startOffset="0">
+                    INCOMING CALLS POINT
+                </textPath>
+            </text>
+        </svg>
+    </div>
+</body>
+</html>

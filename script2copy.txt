@@ -1,0 +1,1368 @@
+// Add Firebase configuration at the top of the file
+const firebaseConfig = {
+    apiKey: "AIzaSyCLrrkbXcW-exG8_n4kOEmzA-SETMWqo-0",
+    authDomain: "feedbackapp-5904d.firebaseapp.com",
+    databaseURL: "https://feedbackapp-5904d-default-rtdb.firebaseio.com",
+    projectId: "feedbackapp-5904d",
+    storageBucket: "feedbackapp-5904d.firebasestorage.app",
+    messagingSenderId: "620175464767",
+    appId: "1:620175464767:web:8054286a27a26210619b8a",
+    measurementId: "G-QH8JN7TE0J"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// Enable faster data sync
+firebase.database().setPerformanceEnabled(true);
+
+// Enable data persistence
+firebase.database().setPersistenceEnabled(true);
+
+// Global variables
+let callData = {
+    details: [],
+    summary: {
+        total: 0,
+        interested: 0,
+        notInterested: 0,
+        callback: 0,
+        unanswered: 0
+    }
+};
+
+// Add this new function to filter today's calls
+function isTodayCall(dateTimeStr) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Parse the dateTime string (format: "DD/MM/YY HH:mm")
+    const [datePart] = dateTimeStr.split(' ');
+    const [day, month, year] = datePart.split('/');
+    const callDate = new Date(2000 + parseInt(year), parseInt(month) - 1, parseInt(day));
+    callDate.setHours(0, 0, 0, 0);
+    
+    return callDate.getTime() === today.getTime();
+}
+
+// Add this new function for fetching call logs
+function initializeCallLogFetching() {
+    const adminEmail = localStorage.getItem('adminEmail');
+    console.log('Admin email:', adminEmail);
+
+    if (!adminEmail) {
+        console.error('No admin email found in localStorage');
+        return;
+    }
+
+    const adminNumber = adminEmail.match(/\d+/);
+    if (!adminNumber) {
+        console.error('Could not extract number from admin email:', adminEmail);
+        return;
+    }
+
+    const telecallerEmail = `telecaller${adminNumber[0]}@gmail.com`;
+    console.log('Fetching calls for telecaller:', telecallerEmail);
+
+    // Reference to the telecaller's node directly
+    const telecallerRef = database.ref(telecallerEmail.split('@')[0]);  // This will be 'telecaller4' for example
+
+    // Set up real-time listener for calls
+    telecallerRef.on('value', (snapshot) => {
+        console.log('Received call data from Firebase for:', telecallerEmail);
+        const data = snapshot.val();
+        
+        if (data) {
+            console.log('Raw call data:', data);
+            
+            // Convert the data to array format
+            const allCalls = Object.entries(data).map(([key, value]) => ({
+                ...value,
+                id: key
+            }));
+            
+            // Sort by timestamp in descending order
+            allCalls.sort((a, b) => {
+                const timestampA = a.timestamp || new Date(a.dateTime).getTime();
+                const timestampB = b.timestamp || new Date(b.dateTime).getTime();
+                return timestampB - timestampA;
+            });
+
+            // If we're on today_calls.html, filter for today's calls only
+            if (window.location.pathname.includes('today_calls.html')) {
+                const todayCalls = allCalls.filter(call => isTodayCall(call.dateTime));
+                console.log('Filtered today\'s calls:', todayCalls);
+                updateTodayDashboard({ details: todayCalls });
+            } else {
+                // For maindashboard.html, show all calls
+                callData.details = allCalls;
+                console.log('Processed all call data:', callData.details);
+                updateDashboardUI(callData);
+            }
+            
+            updateSummaryNumbers();
+            
+            // If call details card is visible, refresh it
+            const callDetailsCard = document.getElementById('callDetailsCard');
+            if (callDetailsCard && callDetailsCard.style.display !== 'none') {
+                const currentStatus = callDetailsCard.dataset.currentStatus || 'Total';
+                showCallDetails(currentStatus);
+            }
+        } else {
+            console.log('No calls found for telecaller:', telecallerEmail);
+            if (window.location.pathname.includes('today_calls.html')) {
+                updateTodayDashboard({ details: [] });
+            } else {
+                callData.details = [];
+                updateDashboardUI(callData);
+            }
+            updateSummaryNumbers();
+        }
+    }, (error) => {
+        console.error('Error fetching calls:', error);
+    });
+}
+
+// Single DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDashboard();
+    setupEventListeners();
+});
+
+async function initializeDashboard() {
+    try {
+        const adminEmail = localStorage.getItem('adminEmail');
+        console.log('Admin email captured:', adminEmail);
+
+        if (!adminEmail) {
+            console.error('No admin email found');
+            return;
+        }
+
+        const adminNumber = adminEmail.match(/\d+/)[0];
+        const telecallerEmail = `telecaller${adminNumber}@gmail.com`;
+        console.log('Associated telecaller email:', telecallerEmail);
+
+        // Load initial data
+        await loadCallDataForTelecaller(telecallerEmail);
+        
+        // Setup real-time listeners
+        setupMainCallsListener(`telecaller${adminNumber}`);
+        setupClickToCallsListener(`telecaller${adminNumber}`);
+        
+        // Update UI
+        updateDashboardUI(callData);
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    }
+}
+
+function setupEventListeners() {
+    // Navigation buttons
+    const buttons = {
+        'todayBtn': openTodayDashboard,
+        'monthlyBtn': openMonthlyDashboard,
+        'uploadBtn': () => window.location.href = 'upload.html',
+        'backToIndex': handleBackNavigation
+    };
+
+    Object.entries(buttons).forEach(([id, handler]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('click', handler);
+        }
+    });
+
+    // Summary cards
+    const cards = {
+        'totalCallsCard': 'Total',
+        'notInterestedCard': 'Not Interested',
+        'unansweredCard': 'Unanswered',
+        'callbackCard': 'Callback',
+        'interestedCard': 'Interested'
+    };
+
+    Object.entries(cards).forEach(([id, status]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('click', () => handleCardClick(status));
+        }
+    });
+}
+
+function handleCardClick(status) {
+    console.log(`Handling click for ${status} card`);
+    const callDetailsCard = document.getElementById('callDetailsCard');
+    
+    if (callDetailsCard.style.display === 'none' || 
+        callDetailsCard.getAttribute('data-status') !== status) {
+        showCallDetails(status);
+        callDetailsCard.style.display = 'block';
+        callDetailsCard.setAttribute('data-status', status);
+    } else {
+        callDetailsCard.style.display = 'none';
+        callDetailsCard.setAttribute('data-status', '');
+    }
+}
+
+function updateDashboardUI(data) {
+    if (!data || !data.summary) {
+        console.error('Invalid data for UI update');
+        return;
+    }
+
+    // Update summary numbers
+    const elements = {
+        total: document.getElementById('totalCallsSummary'),
+        interested: document.getElementById('interestedCallsSummary'),
+        notInterested: document.getElementById('notInterestedCallsSummary'),
+        callback: document.getElementById('callBackCallsSummary'),
+        unanswered: document.getElementById('unansweredCallsSummary')
+    };
+
+    Object.entries(elements).forEach(([key, element]) => {
+        if (element && data.summary[key] !== undefined) {
+            element.textContent = data.summary[key].toString();
+        }
+    });
+
+    // Update progress bar
+    updateProgressBar(data.summary.total);
+
+    // Update call details if visible
+    const callDetailsCard = document.getElementById('callDetailsCard');
+    if (callDetailsCard.style.display !== 'none') {
+        const currentStatus = callDetailsCard.getAttribute('data-status');
+        showCallDetails(currentStatus);
+    }
+}
+
+function handleBackNavigation() {
+    if (window.opener) {
+        window.close();
+        if (!window.opener.closed) {
+            window.opener.location.href = 'index.html';
+        }
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+
+function formatTime(time) {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const formattedHour = (hour % 12 || 12).toString();
+    return `${formattedHour}:${minutes.slice(0, 2)}${ampm}`;
+}
+
+// Add this function to your script.js file
+function printCallDetails() {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Call Details Report</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #f2f2f2;
+                }
+                h1 {
+                    text-align: center;
+                }
+                @media print {
+                    body {
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                }
+                @page {
+                    size: A4 landscape;
+                    margin: 1cm;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Call Details Report</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${Array.from(document.querySelectorAll('#callDetailsBody tr')).map(row => row.outerHTML).join('')}
+                </tbody>
+            </table>
+            <script>
+                window.onload = function() {
+                    window.print();
+                    window.onafterprint = function() {
+                        window.close();
+                    };
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
+
+// Add this function to fetch today's calls
+function fetchTodayCalls() {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).getTime();
+    
+    return database.ref('calls')
+        .orderByChild('timestamp')
+        .startAt(startOfDay)
+        .endAt(endOfDay)
+        .once('value')
+        .then((snapshot) => {
+            const todayCalls = [];
+            snapshot.forEach((childSnapshot) => {
+                const call = childSnapshot.val();
+                if (call.telecallerEmail === associatedTelecallerEmail) {
+                    todayCalls.push(call);
+                }
+            });
+            console.log('Fetched today\'s calls:', todayCalls);
+            return todayCalls;
+        });
+}
+
+// Function to update the UI with the call details
+function updateCallDetails(call) {
+    const callDetailsElement = document.getElementById('callDetails');
+    if (!callDetailsElement) {
+        console.log('Call details element not found - this is expected if not on the details page');
+        return; // Exit gracefully if element doesn't exist
+    }
+
+    try {
+        const callDate = new Date(call.timestamp);
+        const formattedDate = formatDate(callDate);
+        const formattedTime = formatTime(callDate);
+
+        const statusClass = getStatusClass(call.status);
+        const callHtml = `
+            <div class="call-detail ${statusClass}">
+                <p><strong>Date:</strong> ${formattedDate}</p>
+                <p><strong>Time:</strong> ${formattedTime}</p>
+                <p><strong>Phone:</strong> ${call.phone}</p>
+                <p><strong>Status:</strong> ${call.status}</p>
+                <p><strong>Notes:</strong> ${call.notes || 'No notes'}</p>
+            </div>
+        `;
+
+        callDetailsElement.innerHTML = callHtml;
+    } catch (error) {
+        console.error('Error updating call details:', error);
+    }
+}
+
+// Listen for changes in the Firebase Realtime Database
+database.ref('calls').on('child_changed', (snapshot) => {
+    const call = snapshot.val();
+    if (call) {
+        console.log('Call data updated:', call);
+        updateCallDetails(call);
+    }
+});
+
+// Initial load of call details
+database.ref('calls').once('value', (snapshot) => {
+    console.log('Loading initial call details');
+    snapshot.forEach((childSnapshot) => {
+        const call = childSnapshot.val();
+        if (call) {
+            updateCallDetails(call);
+        }
+    });
+});
+
+function loadCallDataForTelecaller(telecallerEmail) {
+    if (!telecallerEmail) {
+        console.error('No telecaller email provided');
+        return;
+    }
+
+    console.log('Loading data for telecaller:', telecallerEmail);
+
+    // Reference to the calls in Firebase
+    const callsRef = database.ref('calls');
+
+    // Create a query to filter by telecaller
+    callsRef.orderByChild('telecallerEmail')
+        .equalTo(telecallerEmail)
+        .once('value')
+        .then(snapshot => {
+            if (!snapshot.exists()) {
+                console.log('No calls found for telecaller:', telecallerEmail);
+                return;
+            }
+
+            const calls = [];
+            snapshot.forEach(childSnapshot => {
+                const call = childSnapshot.val();
+                call.id = childSnapshot.key;
+                calls.push(call);
+            });
+
+            console.log('Processed call data:', calls);
+
+            // Update UI elements if they exist
+            const callCountElement = document.getElementById('callCount');
+            if (callCountElement) {
+                callCountElement.textContent = calls.length;
+            }
+
+            // Update the call list if the element exists
+            const callListElement = document.getElementById('callList');
+            if (callListElement) {
+                calls.forEach(call => {
+                    const callElement = document.createElement('div');
+                    callElement.className = `call-item ${getStatusClass(call.status)}`;
+                    callElement.innerHTML = `
+                        <p><strong>${formatDate(new Date(call.timestamp))}</strong></p>
+                        <p>${call.phone}</p>
+                        <p>${call.status}</p>
+                    `;
+                    callListElement.appendChild(callElement);
+                });
+            }
+
+            // Trigger any additional UI updates
+            updateDashboardUI(calls);
+        })
+        .catch(error => {
+            console.error('Error loading call data:', error);
+        });
+}
+
+// Update the existing DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    const adminEmail = localStorage.getItem('adminEmail');
+    console.log('Admin email captured:', adminEmail);
+
+    if (adminEmail) {
+        const adminNumber = adminEmail.match(/\d+/);
+        if (adminNumber) {
+            const telecallerEmail = `telecaller${adminNumber[0]}@gmail.com`;
+            console.log('Associated telecaller email:', telecallerEmail);
+            loadCallDataForTelecaller(telecallerEmail);
+        } else {
+            console.error('Could not extract number from admin email:', adminEmail);
+        }
+    } else {
+        console.error('No admin email found in localStorage');
+    }
+});
+
+function updateSummaryNumbers() {
+    const totalCalls = callData.details.length;
+    const notInterestedCalls = callData.details.filter(call => call.status === 'Not Interested').length;
+    const unansweredCalls = callData.details.filter(call => call.status === 'Unanswered').length;
+    const callbackCalls = callData.details.filter(call => call.status === 'Callback').length;
+    const interestedCalls = callData.details.filter(call => call.status === 'Interested').length;
+
+    document.getElementById('totalCallsSummary').textContent = totalCalls;
+    document.getElementById('notInterestedCallsSummary').textContent = notInterestedCalls;
+    document.getElementById('unansweredCallsSummary').textContent = unansweredCalls;
+    document.getElementById('callBackCallsSummary').textContent = callbackCalls;
+    document.getElementById('interestedCallsSummary').textContent = interestedCalls;
+}
+
+// Function to add a new call to the dashboard
+function addCallToDashboard(call) {
+    // Ensure the dateTime is in the correct format
+    if (!call.dateTime) {
+        const now = new Date();
+        call.dateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear().toString().slice(-2)} ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+    }
+    
+    // Add a timestamp for sorting
+    call.timestamp = firebase.database.ServerValue.TIMESTAMP;
+    
+    // Check if the number already exists in the database
+    database.ref('calls').orderByChild('number').equalTo(call.number).once('value')
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                let existingCallKey = null;
+                let existingCall = null;
+                snapshot.forEach((childSnapshot) => {
+                    existingCallKey = childSnapshot.key;
+                    existingCall = childSnapshot.val();
+                });
+
+                if (existingCall.status === 'Not Interested' && call.status !== 'Not Interested') {
+                    // Remove the existing 'Not Interested' entry
+                    database.ref('calls').child(existingCallKey).remove()
+                        .then(() => {
+                            console.log('Existing Not Interested call removed');
+                            // Add the new call with updated status
+                            addNewCallEntry(call);
+                        })
+                        .catch((error) => {
+                            console.error('Error removing existing Not Interested call:', error);
+                        });
+                } else {
+                    // If it's not moving from 'Not Interested' to another status, add as a new entry
+                    addNewCallEntry(call);
+                }
+            } else {
+                // Number doesn't exist, add as a new entry
+                addNewCallEntry(call);
+            }
+        })
+        .catch((error) => {
+            console.error('Error checking for existing call:', error);
+        });
+}
+
+// Helper function to add a new call entry
+function addNewCallEntry(call) {
+    const newCallRef = database.ref('calls').push();
+    newCallRef.set(call)
+        .then(() => {
+            console.log('New call added successfully');
+            updateDashboard();
+        })
+        .catch((error) => {
+            console.error('Error adding new call:', error);
+        });
+}
+
+// Function to format date to DD/MM/YY
+function formatDate(dateString) {
+    const [date, time] = dateString.split(' ');
+    const [day, month, year] = date.split('/');
+    return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year.slice(-2)} ${time}`;
+}
+
+// Function to update summary numbers
+function updateSummaryNumbers() {
+    const calls = callData.details || [];
+    
+    document.getElementById('totalCallsSummary').textContent = calls.length;
+    document.getElementById('notInterestedCallsSummary').textContent = calls.filter(call => call.status === 'Not Interested').length;
+    document.getElementById('unansweredCallsSummary').textContent = calls.filter(call => call.status === 'Unanswered').length;
+    document.getElementById('callBackCallsSummary').textContent = calls.filter(call => call.status === 'Callback').length;
+    document.getElementById('interestedCallsSummary').textContent = calls.filter(call => call.status === 'Interested').length;
+}
+
+// Load existing calls from Firebase
+function loadExistingCalls() {
+    updateDashboard();
+}
+
+// Clear data based on the current status
+function clearAllData() {
+    const currentStatus = document.querySelector('.call-details-card').dataset.currentStatus;
+    let confirmMessage = "Are you sure you want to clear all data? This action cannot be undone.";
+    
+    if (currentStatus !== 'Total') {
+        confirmMessage = `Are you sure you want to clear all ${currentStatus} calls? This action cannot be undone.`;
+    }
+
+    if (confirm(confirmMessage)) {
+        if (currentStatus === 'Total') {
+            database.ref('calls').remove()
+                .then(() => {
+                    console.log('All data has been cleared from Firebase');
+                    updateDashboard();
+                })
+                .catch((error) => {
+                    console.error('Error clearing data:', error);
+                });
+        } else {
+            database.ref('calls').orderByChild('status').equalTo(currentStatus).once('value', snapshot => {
+                const updates = {};
+                snapshot.forEach(child => {
+                    updates[child.key] = null;
+                });
+                database.ref('calls').update(updates)
+                    .then(() => {
+                        console.log(`All ${currentStatus} calls have been cleared from Firebase`);
+                        updateDashboard();
+                    })
+                    .catch((error) => {
+                        console.error('Error clearing data:', error);
+                    });
+            });
+        }
+    }
+}
+
+// Listen for messages from the dialpad
+window.addEventListener('message', function(event) {
+    // Ignore messages from React DevTools and Wappalyzer
+    if (event.data && (
+        (event.data.source && event.data.source === 'react-devtools-content-script') ||
+        event.data.wappalyzer
+    )) {
+        return; // Ignore these messages completely
+    }
+
+    // Only process call-related messages
+    if (event.data && event.data.type) {
+        switch (event.data.type) {
+            case 'newCall':
+                console.log('New call received:', event.data.call);
+                addCallToDashboard(event.data.call);
+                break;
+            case 'callUpdated':
+                console.log('Call updated:', event.data.call);
+                updateCallDetails(event.data.call);
+                break;
+            case 'callRemoved':
+                console.log('Call removed:', event.data.call);
+                updateDashboardWithRemovedCall(event.data.call);
+                break;
+        }
+    }
+});
+
+// Function to open dialpad
+function openDialpad() {
+    window.open('dialpad.html', 'dialpad', 'width=300,height=400');
+}
+
+// Function to open Today's dashboard in a new window
+function openTodayDashboard() {
+    const todayWindow = window.open('today_calls.html', '_blank', 'width=800,height=600');
+    todayWindow.addEventListener('load', function() {
+        fetchTodayCalls().then(todayCalls => {
+            todayWindow.postMessage({ type: 'todayCallsData', calls: todayCalls }, '*');
+        }).catch(error => {
+            console.error("Error fetching today's calls:", error);
+        });
+    });
+}
+
+// Function to open Weekly Report in a new window
+function openWeeklyReport() {
+    window.open('weekly_report.html', '_blank', 'width=800,height=600');
+}
+
+// Function to open Monthly dashboard in a new window
+function openMonthlyDashboard() {
+    window.open('monthly_calls.html', '_blank', 'width=800,height=600');
+}
+
+function getStatusClass(status) {
+    switch (status) {
+        case 'Interested':
+            return 'status-interested';
+        case 'Not Interested':
+            return 'status-not-interested';
+        case 'Unanswered':
+            return 'status-unanswered';
+        case 'Callback':
+            return 'status-callback';
+        default:
+            return '';
+    }
+}
+
+function updateDashboardWithNewCall(newCall) {
+    // Remove any existing call with the same number
+    callData.details = callData.details.filter(call => call.number !== newCall.number);
+    // Add the new call
+    callData.details.push(newCall);
+    updateDashboardUI(callData);
+}
+
+function updateDashboardWithRemovedCall(removedCall) {
+    callData.details = callData.details.filter(call => call.number !== removedCall.number);
+    updateDashboardUI(callData);
+}
+
+function updateDashboardWithUpdatedCall(updatedCall) {
+    // Remove any existing call with the same number
+    callData.details = callData.details.filter(call => call.number !== updatedCall.number);
+    // Add the updated call
+    callData.details.push(updatedCall);
+    updateDashboardUI(callData);
+}
+
+function updateDashboardUI(data) {
+    if (!data || !data.summary) {
+        console.error('Invalid data for UI update');
+        return;
+    }
+
+    // Update summary cards with null checks
+    const elements = {
+        total: document.getElementById('totalCallsSummary'),
+        interested: document.getElementById('interestedCallsSummary'),
+        notInterested: document.getElementById('notInterestedCallsSummary'),
+        callback: document.getElementById('callBackCallsSummary'),
+        unanswered: document.getElementById('unansweredCallsSummary')
+    };
+
+    Object.entries(elements).forEach(([key, element]) => {
+        if (element && data.summary[key] !== undefined) {
+            element.textContent = data.summary[key].toString();
+        }
+    });
+
+    // Update call details table if it's visible
+    const callDetailsCard = document.getElementById('callDetailsCard');
+    if (callDetailsCard.style.display !== 'none') {
+        const currentStatus = callDetailsCard.getAttribute('data-status');
+        showCallDetails(currentStatus);
+    }
+}
+
+// Function to filter calls by selected date
+function filterCallsByDate(selectedDate, calls) {
+    return calls.filter(call => {
+        const callDate = call.dateTime.split(' ')[0]; // Extract date part from dateTime
+        return callDate === selectedDate;
+    });
+}
+
+// Function to handle calendar date submission
+function handleCalendarSubmit(event) {
+    event.preventDefault();
+    const selectedDate = document.getElementById('calendarDate').value;
+    if (!selectedDate) return;
+
+    // Format date to match the database format (DD/MM/YY)
+    const formattedDate = formatDate(selectedDate);
+    
+    // Get telecaller email from localStorage
+    const telecallerEmail = localStorage.getItem('telecallerEmail');
+    if (!telecallerEmail) {
+        console.error('Telecaller email not found');
+        return;
+    }
+
+    // Reference to the telecaller's calls
+    const callsRef = database.ref('calls');
+    
+    callsRef.orderByChild('telecallerEmail').equalTo(telecallerEmail).once('value')
+        .then((snapshot) => {
+            const allCalls = [];
+            snapshot.forEach((childSnapshot) => {
+                const call = childSnapshot.val();
+                allCalls.push(call);
+            });
+
+            // Filter calls for selected date
+            const filteredCalls = filterCallsByDate(formattedDate, allCalls);
+            
+            // Update the dashboard with filtered calls
+            updateTodayDashboard({ details: filteredCalls });
+            console.log('Filtered calls for date:', formattedDate, filteredCalls);
+        })
+        .catch((error) => {
+            console.error('Error fetching calls:', error);
+        });
+}
+
+// Add event listener when document is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const clearDataBtn = document.getElementById('clearDataBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener('click', function() {
+            // Add your clear data functionality here
+            console.log('Clear data button clicked');
+        });
+    }
+
+    if (printBtn) {
+        printBtn.addEventListener('click', function() {
+            // Add your print functionality here
+            console.log('Print button clicked');
+        });
+    }
+
+    // Add event listener for calendar form submission
+    const calendarForm = document.getElementById('calendarForm');
+    if (calendarForm) {
+        calendarForm.addEventListener('submit', handleCalendarSubmit);
+    }
+});
+
+// Function to process call data from both sources
+function processCallData(mainData, clickToCallsData) {
+    const combinedCalls = [];
+
+    // Process main calls
+    if (mainData) {
+        Object.entries(mainData).forEach(([key, call]) => {
+            if (call && call.dateTime) {  // Add null check
+                combinedCalls.push({
+                    ...call,
+                    key,
+                    source: 'main'
+                });
+            }
+        });
+    }
+
+    // Process Click to calls
+    if (clickToCallsData) {
+        ['callback', 'interested', 'not-interested', 'not-lift'].forEach(category => {
+            const categoryData = clickToCallsData[category];
+            if (categoryData && typeof categoryData === 'object') {
+                Object.entries(categoryData).forEach(([number, call]) => {
+                    if (call) {  // Add null check
+                        combinedCalls.push({
+                            number,
+                            status: mapStatus(category),
+                            dateTime: call.dateTime || getCurrentDateTime(), // Add fallback
+                            duration: '<img src="images/outgoing-calls.png" width="17" height="17" alt="Outgoing Call"> Outgoing',
+                            notes: call.notes || '',
+                            serialNumber: call.serialNumber || '',
+                            source: 'clickToCall'
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    // Safe sort with null checks
+    return combinedCalls.sort((a, b) => {
+        try {
+            if (!a.dateTime || !b.dateTime) return 0;
+            const dateA = new Date(a.dateTime.split(' ')[0].split('/').reverse().join('-'));
+            const dateB = new Date(b.dateTime.split(' ')[0].split('/').reverse().join('-'));
+            return dateB - dateA;
+        } catch (error) {
+            console.error('Sort error:', error);
+            return 0;
+        }
+    });
+}
+
+// Helper function for current date time
+function getCurrentDateTime() {
+    const now = new Date();
+    const date = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear().toString().slice(-2)}`;
+    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    return `${date} ${time}`;
+}
+
+function loadTelecallerData() {
+    const selectedTelecaller = localStorage.getItem('selectedTelecaller');
+    const telecallerName = selectedTelecaller ? selectedTelecaller.split('@')[0] : null;
+    
+    if (!telecallerName) {
+        console.error('No telecaller selected');
+        return;
+    }
+
+    console.log('Loading data for:', telecallerName);
+
+    // Fetch from both sources
+    Promise.all([
+        database.ref(telecallerName).once('value'),
+        database.ref(`Click to calls/${telecallerName}`).once('value')
+    ])
+    .then(([mainSnapshot, clickToCallsSnapshot]) => {
+        const mainData = mainSnapshot.val();
+        const clickToCallsData = clickToCallsSnapshot.val();
+
+        console.log('1. Raw main telecaller data:', mainData);
+        console.log('2. Raw Click to calls data:', clickToCallsData);
+
+        try {
+            const combinedCalls = processCallData(mainData, clickToCallsData);
+            console.log('3. Processed calls:', combinedCalls);
+
+            // Store globally with proper initialization
+            window.callData = {
+                details: combinedCalls,
+                summary: {
+                    total: combinedCalls.length,
+                    interested: combinedCalls.filter(call => call.status === 'Interested').length,
+                    notInterested: combinedCalls.filter(call => call.status === 'Not Interested').length,
+                    callback: combinedCalls.filter(call => call.status === 'Callback').length,
+                    unanswered: combinedCalls.filter(call => call.status === 'Unanswered').length
+                }
+            };
+
+            // Update UI
+            updateDashboardUI(window.callData);
+
+            console.log('4. Data processing complete:', window.callData);
+        } catch (error) {
+            console.error('Error processing data:', error);
+        }
+    })
+    .catch(error => console.error('Error fetching data:', error));
+}
+
+function mapStatus(category) {
+    const statusMapping = {
+        callback: 'Callback',
+        interested: 'Interested',
+        'not-interested': 'Not Interested',
+        'not-lift': 'Unanswered'
+    };
+    return statusMapping[category] || 'Unknown';
+}
+
+function updateDashboardUI(data) {
+    if (!data || !data.summary) {
+        console.error('Invalid data for UI update');
+        return;
+    }
+
+    // Update summary cards with null checks
+    const elements = {
+        total: document.getElementById('totalCallsSummary'),
+        interested: document.getElementById('interestedCallsSummary'),
+        notInterested: document.getElementById('notInterestedCallsSummary'),
+        callback: document.getElementById('callBackCallsSummary'),
+        unanswered: document.getElementById('unansweredCallsSummary')
+    };
+
+    Object.entries(elements).forEach(([key, element]) => {
+        if (element && data.summary[key] !== undefined) {
+            element.textContent = data.summary[key].toString();
+        }
+    });
+
+    // Update call details table if it's visible
+    const callDetailsCard = document.getElementById('callDetailsCard');
+    if (callDetailsCard.style.display !== 'none') {
+        const currentStatus = callDetailsCard.getAttribute('data-status');
+        showCallDetails(currentStatus);
+    }
+}
+
+// First, let's define setupDashboard at the top level
+function setupDashboard() {
+    const adminEmail = localStorage.getItem('adminEmail');
+    const telecallerName = adminEmail ? `telecaller${adminEmail.match(/\d+/)[0]}` : null;
+    
+    console.log('Setting up dashboard for:', telecallerName);
+    
+    if (!telecallerName) {
+        console.error('No telecaller name found');
+        return;
+    }
+
+    // Set up listeners for both data sources
+    setupMainCallsListener(telecallerName);
+    setupClickToCallsListener(telecallerName);
+}
+
+function setupMainCallsListener(telecallerName) {
+    console.log('Setting up main calls listener for:', telecallerName);
+    
+    database.ref(telecallerName).on('value', (snapshot) => {
+        const mainData = snapshot.val();
+        console.log('Main calls data:', mainData);
+        
+        // Store main calls data
+        window.mainCallsData = mainData;
+        combineAndUpdateData();
+    });
+}
+
+function setupClickToCallsListener(telecallerName) {
+    console.log('Setting up Click to calls listener for:', telecallerName);
+    
+    database.ref(`Click to calls/${telecallerName}`).on('value', (snapshot) => {
+        const clickToCallsData = snapshot.val();
+        console.log('Click to calls data:', clickToCallsData);
+        
+        // Store click to calls data
+        window.clickToCallsData = clickToCallsData;
+        combineAndUpdateData();
+    });
+}
+
+function combineAndUpdateData() {
+    const mainData = window.mainCallsData || {};
+    const clickToCallsData = window.clickToCallsData || {};
+    
+    console.log('Combining data sources:');
+    console.log('1. Main calls:', mainData);
+    console.log('2. Click to calls:', clickToCallsData);
+
+    const combinedCalls = [];
+
+    // Process main calls
+    Object.entries(mainData).forEach(([key, call]) => {
+        if (call && call.dateTime) {
+            combinedCalls.push({
+                ...call,
+                key,
+                source: 'main'
+            });
+        }
+    });
+
+    // Process Click to calls
+    if (clickToCallsData) {
+        ['callback', 'interested', 'not-interested', 'not-lift'].forEach(category => {
+            const categoryData = clickToCallsData[category];
+            if (categoryData) {
+                Object.entries(categoryData).forEach(([number, call]) => {
+                    if (call && call.dateTime) {
+                        combinedCalls.push({
+                            number,
+                            status: mapStatus(category),
+                            dateTime: call.dateTime,
+                            duration: '<img src="images/outgoing-calls.png" width="17" height="17" alt="Outgoing Call"> Outgoing',
+                            notes: call.notes || '',
+                            source: 'clickToCall'
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    console.log('3. Combined calls:', combinedCalls);
+
+    // Update global data
+    window.callData = {
+        details: combinedCalls,
+        summary: {
+            total: combinedCalls.length,
+            interested: combinedCalls.filter(call => call.status === 'Interested').length,
+            notInterested: combinedCalls.filter(call => call.status === 'Not Interested').length,
+            callback: combinedCalls.filter(call => call.status === 'Callback').length,
+            unanswered: combinedCalls.filter(call => call.status === 'Unanswered').length
+        }
+    };
+
+    // Update UI
+    updateDashboardUI(window.callData);
+}
+
+// Helper function to map status
+function mapStatus(category) {
+    const statusMap = {
+        'callback': 'Callback',
+        'interested': 'Interested',
+        'not-interested': 'Not Interested',
+        'not-lift': 'Unanswered'
+    };
+    return statusMap[category] || category;
+}
+
+// Update the DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're on the main dashboard page
+    if (document.getElementById('callDetailsCard')) {
+        setupDashboard();
+    }
+    
+    // Add event listeners only if elements exist
+    ['todayBtn', 'weekReportBtn', 'monthlyBtn', 'settingsBtn'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('click', getClickHandler(id));
+        }
+    });
+});
+
+// Helper function for click handlers
+function getClickHandler(id) {
+    const handlers = {
+        'todayBtn': openTodayDashboard,
+        'weekReportBtn': openWeeklyReport,
+        'monthlyBtn': openMonthlyDashboard,
+        'settingsBtn': () => alert('Settings clicked')
+    };
+    return handlers[id];
+}
+
+// Add this function to handle card clicks
+function handleCardClick(status) {
+    console.log(`\n=== ${status} Card Clicked ===`);
+    console.log('Fetching call details for status:', status);
+
+    // Get all calls
+    const allCalls = window.callData?.details || [];
+    console.log('Total calls available:', allCalls.length);
+
+    // Filter calls for clicked status
+    const statusCalls = allCalls.filter(call => call.status === status);
+    console.log(`Found ${statusCalls.length} ${status} calls:`);
+    
+    // Log each matching call
+    statusCalls.forEach((call, index) => {
+        console.log(`\nCall ${index + 1}:`, {
+            number: call.number,
+            dateTime: call.dateTime,
+            duration: call.duration || call.calls || call.Duration || 'N/A',
+            notes: call.notes || '',
+            source: call.source || 'main'
+        });
+    });
+
+    // Now show the calls in the UI
+    showCallDetails(status);
+}
+
+// Update the event listeners in DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers for each card
+    const totalCallsCard = document.getElementById('totalCallsCard');
+    const notInterestedCard = document.getElementById('notInterestedCard');
+    const unansweredCard = document.getElementById('unansweredCard');
+    const callbackCard = document.getElementById('callbackCard');
+    const interestedCard = document.getElementById('interestedCard');
+
+    if (totalCallsCard) {
+        totalCallsCard.addEventListener('click', () => handleCardClick('Total'));
+    }
+    if (notInterestedCard) {
+        notInterestedCard.addEventListener('click', () => handleCardClick('Not Interested'));
+    }
+    if (unansweredCard) {
+        unansweredCard.addEventListener('click', () => handleCardClick('Unanswered'));
+    }
+    if (callbackCard) {
+        callbackCard.addEventListener('click', () => handleCardClick('Callback'));
+    }
+    if (interestedCard) {
+        interestedCard.addEventListener('click', () => handleCardClick('Interested'));
+    }
+});
+
+// Global storage for all calls
+window.allCalls = [];
+
+// Initialize dashboard
+async function initializeDashboard() {
+    console.log('Initializing dashboard...');
+    await loadAllCallsData();
+    updateSummaryCards();
+    setupCardListeners();
+}
+
+// Load and combine all call data
+async function loadAllCallsData() {
+    const telecallerId = localStorage.getItem('currentTelecallerId');
+    console.log('Loading data for telecaller:', telecallerId);
+    
+    try {
+        // 1. Load main calls
+        const mainCalls = window.callData?.details || [];
+        console.log('Loaded main calls:', mainCalls.length);
+
+        // 2. Load click-to-calls from all status paths
+        const statusPaths = {
+            'callback': 'Callback',
+            'interested': 'Interested',
+            'not-interested': 'Not Interested',
+            'not-lift': 'Unanswered'
+        };
+
+        const clickToCalls = [];
+        
+        for (const [path, displayStatus] of Object.entries(statusPaths)) {
+            const snapshot = await firebase.database()
+                .ref(`Click to calls/telecaller${telecallerId}/${path}`)
+                .once('value');
+            
+            const calls = snapshot.val() || {};
+            
+            Object.entries(calls).forEach(([number, data]) => {
+                clickToCalls.push({
+                    number,
+                    dateTime: data.dateTime,
+                    duration: '<img src="images/outgoing-calls.png" width="17" height="17" alt="Outgoing Call"> Outgoing',
+                    status: displayStatus,
+                    source: 'clickToCall'
+                });
+            });
+        }
+        
+        console.log('Loaded click-to-calls:', clickToCalls.length);
+
+        // 3. Combine all calls
+        window.allCalls = [...mainCalls, ...clickToCalls];
+        console.log('Total combined calls:', window.allCalls.length);
+        
+        return window.allCalls;
+        
+    } catch (error) {
+        console.error('Error loading calls:', error);
+        return [];
+    }
+}
+
+// Update summary cards with counts
+function updateSummaryCards() {
+    const counts = {
+        Total: window.allCalls.length,
+        Interested: window.allCalls.filter(call => call.status === 'Interested').length,
+        'Not Interested': window.allCalls.filter(call => call.status === 'Not Interested').length,
+        Callback: window.allCalls.filter(call => call.status === 'Callback').length,
+        Unanswered: window.allCalls.filter(call => call.status === 'Unanswered').length
+    };
+
+    // Update UI
+    document.getElementById('totalCalls').textContent = counts.Total;
+    document.getElementById('interestedCalls').textContent = counts.Interested;
+    document.getElementById('notInterestedCalls').textContent = counts['Not Interested'];
+    document.getElementById('callbackCalls').textContent = counts.Callback;
+    document.getElementById('unansweredCalls').textContent = counts.Unanswered;
+
+    console.log('Updated card counts:', counts);
+}
+
+// Setup card click listeners
+function setupCardListeners() {
+    const cards = {
+        'totalCallsCard': 'Total',
+        'interestedCard': 'Interested',
+        'notInterestedCard': 'Not Interested',
+        'callbackCard': 'Callback',
+        'unansweredCard': 'Unanswered'
+    };
+
+    Object.entries(cards).forEach(([cardId, status]) => {
+        const card = document.getElementById(cardId);
+        if (card) {
+            card.addEventListener('click', () => showCallDetails(status));
+            console.log(`Added listener for ${cardId}`);
+        }
+    });
+}
+
+// Show call details when card is clicked
+async function showCallDetails(status) {
+    try {
+        console.log(`Starting showCallDetails with status: ${status}`);
+        
+        const callDetailsBody = document.getElementById('callDetailsBody');
+        callDetailsBody.innerHTML = '';
+
+        // Get telecaller info
+        const selectedTelecaller = localStorage.getItem('selectedTelecaller');
+        const telecallerName = selectedTelecaller.split('@')[0];
+        
+        // STEP 2: Fetch ALL calls without any limits
+        const mainDbRef = firebase.database().ref(telecallerName);
+        const mainSnapshot = await mainDbRef.once('value');
+        
+        let mainCalls = [];
+        mainSnapshot.forEach(childSnapshot => {
+            const call = childSnapshot.val();
+            if (status === 'Total' || call.status === status) {
+                mainCalls.push({
+                    ...call,
+                    key: childSnapshot.key,
+                    source: 'main'
+                });
+            }
+        });
+        console.log(`Found ${mainCalls.length} calls in main database`);
+
+        // STEP 3: Fetch ALL click-to-call calls
+        const statusMap = {
+            'Interested': 'interested',
+            'Not Interested': 'not-interested',
+            'Callback': 'callback',
+            'Unanswered': 'not-lift'
+        };
+
+        let clickToCalls = [];
+        if (statusMap[status]) {
+            const clickToCallRef = firebase.database()
+                .ref(`Click to calls/${telecallerName}/${statusMap[status]}`);
+            const clickToCallSnapshot = await clickToCallRef.once('value');
+            
+            clickToCallSnapshot.forEach(childSnapshot => {
+                clickToCalls.push({
+                    number: childSnapshot.key,
+                    status: status,
+                    dateTime: childSnapshot.val().dateTime || 'N/A',
+                    duration: '<img src="images/outgoing-calls.png" width="17" height="17" alt="Outgoing Call"> Outgoing',
+                    source: 'clickToCall',
+                    key: childSnapshot.key
+                });
+            });
+        }
+        console.log(`Found ${clickToCalls.length} calls in click-to-call database`);
+
+        // STEP 4: Combine ALL calls
+        const allCalls = [...mainCalls, ...clickToCalls];
+        console.log(`Total combined calls: ${allCalls.length}`);
+
+        // STEP 5: Display ALL calls
+        allCalls.forEach(call => {
+            const row = document.createElement('tr');
+            const [date, time] = (call.dateTime && call.dateTime !== 'N/A') 
+                ? call.dateTime.split(' ') 
+                : ['N/A', 'N/A'];
+
+            row.innerHTML = `
+                <td>${call.number}</td>
+                <td>
+                    <span class="status-badge ${status.toLowerCase().replace(' ', '-')}">
+                        ${status}
+                    </span>
+                </td>
+                <td>${call.duration || 'N/A'}</td>
+                <td>${date}</td>
+                <td>${time}</td>
+                <td>
+                    <button class="whatsapp-btn" data-number="${call.number}">
+                        <img src="images/whatsapp-icon.png" alt="WhatsApp" width="20" height="20">
+                    </button>
+                    <button class="call-btn" data-number="${call.number}">
+                        <img src="images/phone-icon.png" alt="Call" width="20" height="20">
+                    </button>
+                    <img src="images/dustbin.png" alt="Delete" width="20" height="20" 
+                         class="dustbin-icon" data-number="${call.number}" 
+                         style="cursor: pointer;">
+                </td>
+            `;
+            callDetailsBody.appendChild(row);
+        });
+
+        // Update card title WITHOUT count
+        const cardTitle = document.querySelector('#callDetailsCard h2');
+        if (cardTitle) {
+            cardTitle.textContent = `${status} Call Details`;
+        }
+
+        // Show the card
+        const callDetailsCard = document.getElementById('callDetailsCard');
+        if (callDetailsCard) {
+            callDetailsCard.style.display = 'block';
+        }
+
+    } catch (error) {
+        console.error('Error in showCallDetails:', error);
+        alert('Error loading call details. Please try again.');
+    }
+}           

@@ -1,0 +1,165 @@
+<html></html>
+
+<head>
+    <title>StudentConnect - Enhanced Messaging System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Additional styles remain the same */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-row button {
+            flex: 1;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .full-width button {
+            width: 100%;
+        }
+    </style>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+    <div class="container fade-in">
+        <div class="gnilogo">
+            <img src="https://i.postimg.cc/Xqp2r5bL/download-2.jpg" alt="">
+
+        </div>
+        <div>
+            <!-- <h1 class="department-title">
+                <span class="department">DEPARTMENT OF</span> 
+                <span class="highlight1">ELECTRONICS AND COMMUNICATION</span>
+            </h1> -->
+            <h2 class="section-title">
+                <span class="highlight">IIIYR - 1st SEM - SECTION-2</span>
+            </h2>
+        </div>
+
+        
+
+        <div class="search-container">
+            <input type="text" id="rollNumber" placeholder="Enter Roll Number">
+            <button id="searchBtn" class="searchbtn">Search</button>
+        </div>
+
+        <div id="profileCard" class="profile-card" style="display:none;">
+            <h2 id="studentName"></h2>
+            <p><strong>Roll Number:</strong> <span id="studentRoll"></span></p>
+            <p><strong>Email:</strong> <span id="studentEmail"></span></p>
+            <p><strong>Parent Name:</strong> <span id="parentName"></span></p>
+            <p><strong>Parent Phone:</strong> <span id="parentPhone"></span></p>
+            <p><strong>Student Phone:</strong> <span id="studentPhone"></span></p>
+            <div class="action-buttons">
+                <div class="button-row firstflex">
+                    <button onclick="callParent()">Call Parent</button>
+                    <button onclick="callStudent()">Call Student</button>
+                </div>
+                <div class="button-row secondflex ">
+                    <button id="whatsappParentBtn">WhatsApp Parent</button>
+                    <button onclick="whatsappStudent()">WhatsApp Student</button>
+                </div>
+            </div>
+            <!-- Add the new Dial Number button here -->
+            <button id="dialNumberBtn" onclick="openDialPad(event)" class="full-width-button">Dial Number</button>
+            <div id="customMessageArea" style="display:none;">
+                <textarea id="customMessageContent" placeholder="Enter your custom message"></textarea>
+                <button id="sendCustomMessageBtn">Send WhatsApp Message</button>
+            </div>
+        </div>
+
+        <div id="messageForm" class="message-form" style="display:none;">
+            <h2>Send Message</h2>
+            <textarea id="messageContent" placeholder="Enter your message"></textarea>
+            <div class="action-buttons">
+                <button onclick="saveMessage()">Save</button>
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button id="allParentsBtn" class="allparents">All Parents</button>
+            <button class="print-btn" onclick="openPrintModal()" style="font-weight: bold;">Print</button>
+        </div>
+        
+        <button class="crsbtn" onclick="toggleCRProfiles()" class="full-width">Contact CRs</button>
+
+        <div id="crProfiles" style="display:none;"></div>
+
+        <!-- Replace the existing bulk message form with this -->
+        <div id="bulkMessageForm" class="message-form" style="display:none;">
+          <h2>Bulk Message</h2>
+          <textarea id="bulkMessageContent" placeholder="Enter your message for all parents"></textarea>
+          <div class="action-buttons vertical">
+            <button onclick="sendBulkMessage('first')">First Group (1-25)</button>
+            <button onclick="sendBulkMessage('second')">Second Group (26-50)</button>
+            <button onclick="sendBulkMessage('third')">Third Group (51+)</button>
+          </div>
+        </div>
+
+        <div class="message-logs">
+            <h2>Recent Message Logs</h2>
+            <div id="messageLogs"></div>
+            <button id="clearLogsBtn">Clear All Logs</button>
+        </div>
+        <footer class="footer">2024© Copyright Designed and
+            Developed by <a href="https://www.linkedin.com/company/croxton-technologies/?viewAsMember=true"> Croxton Technologies</a>
+        </footer>
+        <div class="header-buttons">
+            <button id="studentsBtn">Students</button>
+            <button id="logoutBtn" class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        <!-- Update this button near your other buttons -->
+
+        <!-- this + button is just  commented 
+        it functionality is ready to use this button just uncomment it and use
+        -->
+        <!-- -------------------(+ button)---------------------------------- -->
+
+        <!-- <button id="printBtn" class="print-btn fab">
+          <span class="icon">+</span>
+        </button> -->
+
+        <!-- Add this modal for date selection and print options -->
+        <div id="printModal" class="modal">
+          <div class="modal-content">
+            <h2>Select Date Range</h2>
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <button id="printPreviewBtn">Print Preview</button>
+            <button id="closeModal">Close</button>
+          </div>
+        </div>
+
+        <!-- Add this for the print preview -->
+        <div id="printPreview" class="print-preview">
+          <div id="printContent"></div>
+        </div>
+    </div>
+    <!-- Add these script tags just before your script.js -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

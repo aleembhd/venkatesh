@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login System</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.gnilogo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.gnilogo img {
+    max-width: 100%;
+    height: auto;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+}
+
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #237a4e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    /* background-color: #45a049; */
+}
+
+p {
+    text-align: center;
+    margin-top: 15px;
+}
+
+a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#registerForm,
+#resetPasswordForm {
+    display: none;
+}
+
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-container input[type="password"],
+.password-container input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    padding-right: 35px; /* Make room for the icon */
+    box-sizing: border-box;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 1;
+}
+</style>
+<body>
+    <div class="container">
+        <div class="gnilogo">
+            <img src='https://i.postimg.cc/Xqp2r5bL/download-2.jpg' border='0' alt='download-2' />
+        </div>
+
+        <div id="authContainer">
+            <div id="loginForm">
+                <h2>Login</h2>
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <div class="password-container">
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <i class="fas fa-eye password-toggle" onclick="togglePasswordVisibility()"></i>
+                </div>
+                <div class="remember-me">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">Remember Me</label>
+                </div>
+                <button onclick="login()">Login</button>
+                <!-- <p>Don't have an account? <a href="#" onclick="showRegister()">Register</a></p> -->
+                <p><a href="#" onclick="showResetPassword()">Forgot Password?</a></p>
+            </div>
+
+            <div id="registerForm" style="display: none;">
+                <h2>Register</h2>
+                <input type="email" id="registerEmail" placeholder="Email" required>
+                <input type="password" id="registerPassword" placeholder="Password" required>
+                <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                <button onclick="register()">Register</button>
+                <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+            </div>
+
+            <div id="resetPasswordForm" style="display: none;">
+                <h2>Reset Password</h2>
+                <input type="email" id="resetEmail" placeholder="Email" required>
+                <button onclick="resetPassword()">Send Reset Link</button>
+                <p><a href="#" onclick="showLogin()">Back to Login</a></p>
+            </div>
+        </div>
+
+        <div id="sectionContainer" style="display: none;"></div>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPHg4u5YxwSSqVJsYq8qmQvPYTyq4nluA",
+            authDomain: "studentconnect-f6bc5.firebaseapp.com",
+            projectId: "studentconnect-f6bc5",
+            storageBucket: "studentconnect-f6bc5.appspot.com",
+            messagingSenderId: "481218466543",
+            appId: "1:481218466543:web:a65336df45bc90c77c411a"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Modify the checkRememberedEmail function
+        function checkRememberedCredentials() {
+            const rememberedEmail = localStorage.getItem('rememberedEmail');
+            const rememberedPassword = localStorage.getItem('rememberedPassword');
+            if (rememberedEmail) {
+                document.getElementById('loginEmail').value = rememberedEmail;
+            }
+            if (rememberedPassword) {
+                document.getElementById('loginPassword').value = rememberedPassword;
+                document.getElementById('rememberMe').checked = true;
+            }
+        }
+
+        // Call this function when the page loads
+        checkRememberedCredentials();
+
+        window.login = function() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+                localStorage.setItem('rememberedPassword', password);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+                localStorage.removeItem('rememberedPassword');
+            }
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    console.log("User logged in:", user);
+                    // Store the user token in localStorage
+                    localStorage.setItem('userToken', user.uid);
+                    // Redirect to webapp.html
+                    window.location.href = "webapp.html";
+                })
+                .catch((error) => {
+                    console.error("Login error:", error.message);
+                    alert("Login failed: " + error.message);
+                });
+        }
+
+        // Add this function for password visibility toggle
+        window.togglePasswordVisibility = function() {
+            const passwordInput = document.getElementById('loginPassword');
+            const toggleIcon = document.querySelector('.password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        window.register = function() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    console.log("User registered:", user);
+                    alert("Registration successful! Please log in.");
+                    showLogin();
+                })
+                .catch((error) => {
+                    console.error("Registration error:", error.message);
+                    alert("Registration failed: " + error.message);
+                });
+        }
+
+        window.resetPassword = function() {
+            const email = document.getElementById('resetEmail').value;
+
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    alert("Password reset email sent. Check your inbox.");
+                    showLogin();
+                })
+                .catch((error) => {
+                    console.error("Password reset error:", error.message);
+                    alert("Password reset failed: " + error.message);
+                });
+        }
+
+        window.showLogin = function() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('resetPasswordForm').style.display = 'none';
+        }
+
+        window.showRegister = function() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('resetPasswordForm').style.display = 'none';
+        }
+
+        window.showResetPassword = function() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('resetPasswordForm').style.display = 'block';
+        }
+    </script>
+    <script src="scripts.js"></script>
+</body>
+
+</html>

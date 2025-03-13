@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Contact</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--primary-color);
+            background-color: var(--secondary-color);
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: var(--accent-color);
+        }
+        .contact-info {
+            margin: 20px 0;
+        }
+        .social-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .social-icons a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-size: 24px;
+        }
+        .social-icons img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .social-icons img:hover {
+            transform: scale(1.1);
+        }
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .social-icons img {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">Back</a>
+        <h1>Contact Us</h1>
+        <p>If you have any questions or need assistance, please feel free to reach out to us through the following contact details:</p>
+        
+        <div class="contact-info">
+            <p><strong>Email:</strong> croxtontechnologies@gmail.com</p>
+            <p><strong>Phone:</strong> 7672029401</p>
+            <p><strong>WhatsApp:</strong> 7672029401</p>
+        </div>
+
+        <h2>Connect With Us:</h2>
+        <div class="social-icons">
+            <a href="https://x.com/croxtonai" target="_blank">
+                <img src="images/twitter.jpg" alt="Twitter">
+            </a>
+            <a href="https://www.linkedin.com/company/croxton-technologies/?viewAsMember=true" target="_blank">
+                <img src="images/linkedin.jpg" alt="LinkedIn">
+            </a>
+            <a href="mailto:croxtontechnologies@gmail.com">
+                <img src="images/gmail.jpg" alt="Gmail">
+            </a>
+            <a href="tel:+917672029401">
+                <img src="images/call.jpg" alt="Call">
+            </a>
+            <a href="https://wa.me/+917672029401" target="_blank">
+                <img src="images/whatsapp.jpg" alt="WhatsApp">
+            </a>
+        </div>
+
+    
+    </div>
+</body>
+</html>

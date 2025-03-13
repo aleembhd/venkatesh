@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Data</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .upload-description {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .file-upload-container {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-container:hover {
+            border-color: #333;
+            background-color: #f8f8f8;
+        }
+
+        .file-upload-container.dragover {
+            border-color: #333;
+            background-color: #f0f0f0;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-btn {
+            background-color: #333;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .upload-btn:hover {
+            background-color: #000;
+            transform: translateY(-2px);
+        }
+
+        .upload-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .file-info {
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .supported-formats {
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .format-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .format-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .upload-instructions {
+            text-align: left;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-top: 15px;
+        }
+
+        .upload-instructions h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .upload-instructions ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .upload-instructions li {
+            margin: 8px 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px auto;
+                padding: 15px;
+            }
+
+            .upload-card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .upload-description {
+                font-size: 1rem;
+            }
+
+            .file-upload-container {
+                padding: 20px 15px;
+            }
+
+            .format-line {
+                flex-direction: row;
+                font-size: 0.85rem;
+                gap: 5px;
+            }
+            
+            .format-badge {
+                font-size: 0.8rem;
+                white-space: nowrap;
+            }
+            
+            .upload-instructions {
+                font-size: 0.85rem;
+                padding: 12px 15px;
+            }
+        }
+
+        /* Back button styles */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: #000;
+            transform: translateX(-5px);
+        }
+
+        /* Add these new styles */
+        .extraction-results {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f8f8;
+        }
+
+        .results-card {
+            text-align: center;
+        }
+
+        .number-count {
+            margin: 20px 0;
+        }
+
+        .number-count span {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: #333;
+            transition: width 0.3s ease;
+        }
+
+        .extraction-results {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f8f8;
+        }
+
+        .processing-status {
+            text-align: center;
+        }
+
+        .number-count {
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+
+        .number-count span {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+        }
+
+        #extractionStatus {
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='index.html'">
+        <span>←</span>
+        <span>Back</span>
+    </button>
+
+    <div class="container">
+        <div class="upload-card">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjEgMTV2NGEyIDIgMCAwIDEtMiAySDVhMiAyIDAgMCAxLTItMnYtNCI+PC9wYXRoPjxwb2x5bGluZSBwb2ludHM9IjE3IDggMTIgMyA3IDgiPjwvcG9seWxpbmU+PGxpbmUgeDE9IjEyIiB5MT0iMyIgeDI9IjEyIiB5Mj0iMTUiPjwvbGluZT48L3N2Zz4=" 
+                 alt="Upload Icon" 
+                 class="upload-icon">
+            
+            <h1>Upload Your Data</h1>
+            <p class="upload-description">Drag and drop your file here or click to browse</p>
+
+            <div class="file-upload-container" id="dropZone">
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.pdf">
+                <p>Drop your file here or click to select</p>
+                <div class="file-info" id="fileInfo"></div>
+                <div class="extraction-results" id="extractionResults" style="display: none;">
+                    <div class="results-card">
+                        <h3>Processing File</h3>
+                        <div class="processing-status">
+                            <div class="number-count">
+                                <span id="processedCount">0</span>
+                                <span id="totalCount"></span>
+                                <p>Numbers Processed</p>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress" id="extractionProgress"></div>
+                            </div>
+                            <p id="extractionStatus">Initializing...</p>
+                        </div>
+                        <div class="final-results" style="display: none;">
+                            <div class="number-count">
+                                <span id="numberCount">0</span>
+                                <p>Valid Mobile Numbers Found</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="upload-btn" id="uploadBtn" disabled>Upload File</button>
+
+            <div class="supported-formats">
+                <p style="margin-bottom: 10px;">Supported file formats: </p>
+                <div class="format-line">
+                    <span class="format-badge">Excel (.xlsx, .xls)</span>
+                    <span class="format-badge">CSV (.csv)</span>
+                    <span class="format-badge">PDF (.pdf)</span>
+                </div>
+                <div class="upload-instructions">
+                    <h4>Important Instructions:</h4>
+                    <ul>
+                        <li>❌ No scanned documents or images - text must be selectable</li>
+                        <li>📱 Numbers should be in proper format (e.g., 10 digits or with +91/91 prefix)</li>
+                        <li>📊 For Excel/CSV: Numbers can be in any column</li>
+                        <li>📄 For PDF: Only text-based PDFs are supported (no scanned PDFs)</li>
+                        <li>⚡ Maximum file size: 10MB</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-database.js"></script>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        // Handle drag and drop events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        // Handle file drop
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        // Handle file selection via click
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        async function extractNumbers(file) {
+            const extractionResults = document.getElementById('extractionResults');
+            const numberCount = document.getElementById('numberCount');
+            const processedCount = document.getElementById('processedCount');
+            const totalCount = document.getElementById('totalCount');
+            const extractionProgress = document.getElementById('extractionProgress');
+            const extractionStatus = document.getElementById('extractionStatus');
+            
+            extractionResults.style.display = 'block';
+            document.querySelector('.final-results').style.display = 'none';
+            const numbers = new Set();
+            
+            try {
+                extractionStatus.textContent = 'Reading file...';
+                extractionStatus.classList.add('pulse');
+                
+                let totalItems = 0;
+                let processedItems = 0;
+
+                if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                    const data = await readExcelFile(file);
+                    totalItems = getTotalExcelItems(data);
+                    totalCount.textContent = ` / ${totalItems}`;
+                    await processExcelData(data, numbers, (processed) => {
+                        processedItems = processed;
+                        updateProgress(processedItems, totalItems);
+                    });
+                } else if (file.name.endsWith('.csv')) {
+                    const data = await readCSVFile(file);
+                    totalItems = data.split('\n').length;
+                    totalCount.textContent = ` / ${totalItems}`;
+                    await processCSVData(data, numbers, (processed) => {
+                        processedItems = processed;
+                        updateProgress(processedItems, totalItems);
+                    });
+                } else if (file.name.endsWith('.pdf')) {
+                    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+                    totalItems = pdf.numPages;
+                    totalCount.textContent = ` / ${totalItems}`;
+                    await processPDFFile(file, numbers, (processed) => {
+                        processedItems = processed;
+                        updateProgress(processedItems, totalItems);
+                    });
+                }
+
+                // Show final results
+                extractionStatus.classList.remove('pulse');
+                document.querySelector('.processing-status').style.display = 'none';
+                document.querySelector('.final-results').style.display = 'block';
+                numberCount.textContent = numbers.size;
+                extractionStatus.textContent = 'Extraction Complete!';
+                
+                window.extractedNumbers = Array.from(numbers);
+                
+            } catch (error) {
+                console.error('Extraction error:', error);
+                extractionStatus.classList.remove('pulse');
+                extractionStatus.textContent = 'Error during extraction';
+                throw error;
+            }
+        }
+
+        function updateProgress(processed, total) {
+            const percentage = (processed / total) * 100;
+            const extractionProgress = document.getElementById('extractionProgress');
+            const processedCount = document.getElementById('processedCount');
+            const extractionStatus = document.getElementById('extractionStatus');
+
+            processedCount.textContent = processed;
+            extractionProgress.style.width = `${percentage}%`;
+            extractionStatus.textContent = 'Processing numbers...';
+        }
+
+        function isValidMobileNumber(number) {
+            // Remove all non-digit characters
+            const cleaned = number.toString().replace(/\D/g, '');
+            
+            // Case 1: Handle numbers with country code prefix (+91 or 91)
+            if (cleaned.length === 12 && cleaned.startsWith('91')) {
+                return true;
+            }
+            
+            // Case 2: Handle any 10-digit number
+            if (cleaned.length === 10) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        function extractNumbersFromText(text, numbers) {
+            if (!text) return;
+            
+            // Clean up common OCR issues
+            text = text.toString()
+                .replace(/[oO]/g, '0')
+                .replace(/[iIlL]/g, '1')
+                .replace(/[sS]/g, '5');
+
+            // Simplified patterns for the two cases
+            const patterns = [
+                /\+?91\d{10}/g,  // +91 or 91 followed by 10 digits
+                /\d{10}/g        // Any 10 digits
+            ];
+
+            patterns.forEach(pattern => {
+                const matches = text.match(pattern) || [];
+                matches.forEach(match => {
+                    const cleaned = match.replace(/\D/g, '');
+                    
+                    if (isValidMobileNumber(cleaned)) {
+                        let finalNumber;
+                        
+                        // If number has 12 digits starting with 91, take last 10 digits
+                        if (cleaned.length === 12 && cleaned.startsWith('91')) {
+                            finalNumber = cleaned.slice(-10);
+                        } else if (cleaned.length === 10) {
+                            // For 10-digit numbers, use as is
+                            finalNumber = cleaned;
+                        }
+                        
+                        if (finalNumber) {
+                            numbers.add(finalNumber);
+                            console.log(`Extracted number: ${match} -> ${finalNumber}`);
+                        }
+                    }
+                });
+            });
+        }
+
+        async function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        resolve(workbook);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function processExcelData(workbook, numbers, progressCallback) {
+            let processed = 0;
+            workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const dataArray = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                
+                dataArray.forEach(row => {
+                    if (Array.isArray(row)) {
+                        row.forEach(cell => {
+                            if (cell) {
+                                extractNumbersFromText(cell.toString(), numbers);
+                            }
+                        });
+                    }
+                    processed++;
+                    progressCallback(processed);
+                });
+            });
+        }
+
+        async function readCSVFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    resolve(e.target.result);
+                };
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function processCSVData(csvText, numbers, progressCallback) {
+            const rows = csvText.split('\n');
+            let processed = 0;
+            rows.forEach(row => {
+                // Split by common CSV delimiters
+                const cells = row.split(/[,;\t]/);
+                cells.forEach(cell => {
+                    if (cell) {
+                        extractNumbersFromText(cell, numbers);
+                    }
+                });
+                processed++;
+                progressCallback(processed);
+            });
+        }
+
+        async function processPDFFile(file, numbers, progressCallback) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            
+            let processed = 0;
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                
+                // Combine text items with proper spacing
+                let lastY;
+                let text = '';
+                textContent.items.forEach(item => {
+                    if (lastY !== item.transform[5]) {
+                        text += ' ';
+                        lastY = item.transform[5];
+                    }
+                    text += item.str;
+                });
+                
+                extractNumbersFromText(text, numbers);
+                processed++;
+                progressCallback(processed);
+            }
+        }
+
+        function checkFileSize(file) {
+            const maxSize = 10; // Maximum size in MB
+            const fileSize = file.size / (1024 * 1024); // Convert to MB
+            
+            if (fileSize > maxSize) {
+                alert(`File size (${fileSize.toFixed(2)}MB) exceeds the maximum limit of ${maxSize}MB. Please upload a smaller file.`);
+                return false;
+            }
+            return true;
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                
+                // Check file size first
+                if (!checkFileSize(file)) {
+                    // Reset the input
+                    fileInput.value = '';
+                    fileInfo.innerHTML = '';
+                    uploadBtn.disabled = true;
+                    return;
+                }
+                
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+                fileInfo.innerHTML = `Selected file: ${file.name} (${fileSize} MB)`;
+                uploadBtn.disabled = false;
+                
+                // Start number extraction
+                extractNumbers(file);
+            }
+        }
+
+        // Add this after your existing Firebase script imports
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLrrkbXcW-exG8_n4kOEmzA-SETMWqo-0",
+            authDomain: "feedbackapp-5904d.firebaseapp.com",
+            databaseURL: "https://feedbackapp-5904d-default-rtdb.firebaseio.com",
+            projectId: "feedbackapp-5904d",
+            storageBucket: "feedbackapp-5904d.firebasestorage.app",
+            messagingSenderId: "620175464767",
+            appId: "1:620175464767:web:8054286a27a26210619b8a",
+            measurementId: "G-QH8JN7TE0J"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Add this right after your PDF.js script import
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+        // Add this before your Firebase initialization
+        let excludedButtons = [];
+
+        // Add this function to fetch excludedButtons from Firebase
+        async function getExcludedButtons() {
+            try {
+                const snapshot = await firebase.database().ref('excludedButtons').once('value');
+                excludedButtons = snapshot.val() || [0,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; // Keep your existing excluded buttons
+                return excludedButtons;
+            } catch (error) {
+                console.error('Error fetching excludedButtons:', error);
+                return [0,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; // Default fallback
+            }
+        }
+
+        // Add this function to calculate equal distribution chunks
+        function calculateEqualChunks(array, parts) {
+            const chunks = [];
+            const chunkSize = Math.ceil(array.length / parts);
+            
+            console.log(`Dividing ${array.length} numbers into ${parts} equal parts`);
+            console.log(`Target chunk size: ${chunkSize}`);
+
+            for (let i = 0; i < array.length; i += chunkSize) {
+                const chunk = array.slice(i, i + chunkSize);
+                chunks.push(chunk);
+                console.log(`Chunk ${chunks.length}: ${chunk.length} numbers`);
+            }
+
+            return chunks;
+        }
+
+        // Update the upload button click handler with improved distribution logic
+        uploadBtn.addEventListener('click', async () => {
+            try {
+                console.log('Starting distribution process...');
+                
+                // Get extracted numbers
+                const numbers = window.extractedNumbers || [];
+                console.log('Total numbers to distribute:', numbers.length);
+                
+                if (numbers.length === 0) {
+                    alert('No valid numbers found in the file');
+                    return;
+                }
+
+                // Get excluded buttons
+                await getExcludedButtons();
+                console.log('Excluded telecallers:', excludedButtons);
+
+                // Calculate available telecallers (updated range to 16)
+                const allNumbers = Array.from({length: 16}, (_, i) => i);
+                const availableTelecallers = allNumbers.filter(num => !excludedButtons.includes(num));
+                console.log('Available telecallers:', availableTelecallers);
+                
+                if (availableTelecallers.length === 0) {
+                    alert('No telecaller slots available');
+                    return;
+                }
+
+                // Calculate equal chunks for distribution
+                const numberChunks = calculateEqualChunks(numbers, availableTelecallers.length);
+                
+                // Distribute numbers to each telecaller
+                for (let i = 0; i < availableTelecallers.length; i++) {
+                    const telecallerId = availableTelecallers[i];
+                    const numbersForTelecaller = numberChunks[i] || [];
+                    
+                    console.log(`Processing telecaller ${telecallerId}...`);
+                    console.log(`Assigned numbers count: ${numbersForTelecaller.length}`);
+
+                    const uploadRef = firebase.database().ref(`Click to calls/telecaller${telecallerId}/uploaddata`);
+                    
+                    try {
+                        // Get existing numbers for this telecaller
+                        const snapshot = await uploadRef.once('value');
+                        const existingData = snapshot.val() || {};
+                        const existingNumbers = Object.values(existingData);
+                        
+                        console.log(`Telecaller ${telecallerId} existing numbers: ${existingNumbers.length}`);
+
+                        // Filter out duplicates
+                        const uniqueNewNumbers = numbersForTelecaller.filter(number => 
+                            !existingNumbers.includes(number)
+                        );
+                        
+                        console.log(`Telecaller ${telecallerId} new unique numbers: ${uniqueNewNumbers.length}`);
+
+                        if (uniqueNewNumbers.length > 0) {
+                            // Create object with new numbers, starting after existing ones
+                            const lastIndex = Object.keys(existingData).length;
+                            const newNumbersObject = uniqueNewNumbers.reduce((acc, number, index) => {
+                                acc[lastIndex + index] = number;
+                                return acc;
+                            }, {});
+
+                            // Update Firebase
+                            await uploadRef.update(newNumbersObject);
+                            console.log(`Successfully updated telecaller ${telecallerId} with ${uniqueNewNumbers.length} numbers`);
+                        } else {
+                            console.log(`No new unique numbers for telecaller ${telecallerId}`);
+                        }
+                    } catch (error) {
+                        console.error(`Error updating telecaller ${telecallerId}:`, error);
+                        throw error; // Rethrow to be caught by outer try-catch
+                    }
+                }
+
+                // Show success message
+                const totalDistributed = numberChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                alert(`Successfully distributed ${totalDistributed} numbers among ${availableTelecallers.length} telecallers`);
+                
+                // Reset the form
+                fileInfo.innerHTML = '';
+                fileInput.value = '';
+                uploadBtn.disabled = true;
+                document.getElementById('extractionResults').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Distribution error:', error);
+                alert(`Error during distribution: ${error.message}. Please try again.`);
+            }
+        });
+
+        // Add helper function to get total Excel items
+        function getTotalExcelItems(workbook) {
+            let total = 0;
+            workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                total += data.length;
+            });
+            return total;
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dialpad Calls</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #ffffff;
+            --accent-color: #808080;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            padding: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+        }
+
+        .header-count {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            background: rgba(255,255,255,0.1);
+            padding: 4px 12px;
+            border-radius: 15px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-3px);
+        }
+
+        .search-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            padding: 10px 20px;
+            background: #fff;
+            z-index: 999;
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .call-list {
+            margin-top: 120px;
+            padding-bottom: 20px;
+        }
+
+        .call-item {
+            background: var(--secondary-color);
+            border-radius: 12px;
+            margin: 10px 0;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            transition: transform 0.2s ease;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .call-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .number-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .serial-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-right: 15px;
+        }
+
+        .phone-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .call-btn {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .call-btn:hover {
+            background: #333;
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .phone-number { font-size: 1.2rem; }
+            .call-btn { padding: 8px 20px; font-size: 1rem; }
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .popup-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .popup-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .yes-button { background: #4CAF50; color: white; }
+        .no-button { background: #f44336; color: white; }
+        .interested-button { background: #2196F3; color: white; }
+        .callback-button { background: #FF9800; color: white; }
+
+        .success-popup {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideDown 0.5s ease;
+        }
+        
+        @keyframes slideDown {
+            from { top: -50px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <h1>Dialpad Calls <span id="totalCount">(0)</span></h1>
+    </div>
+
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search numbers..." id="searchInput">
+        </div>
+
+        <div class="call-list" id="callList">
+            <!-- Calls will be loaded here -->
+        </div>
+    </div>
+
+    <div id="callAnsweredPopup" class="popup-overlay">
+        <div class="popup-card">
+            <div class="popup-title">Was The Call Answered?</div>
+            <div class="popup-buttons">
+                <button class="popup-button yes-button" onclick="handleCallAnswer(true)">YES</button>
+                <button class="popup-button no-button" onclick="handleCallAnswer(false)">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="callStatusPopup" class="popup-overlay">
+        <div class="popup-card">
+            <div class="popup-title">Call Status</div>
+            <div class="popup-buttons">
+                <button class="popup-button interested-button" onclick="handleCallStatus('Interested')">Interested</button>
+                <button class="popup-button callback-button" onclick="handleCallStatus('Callback')">Callback</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+        // Initialize Firebase with the correct credentials
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLrrkbXcW-exG8_n4kOEmzA-SETMWqo-0",
+            authDomain: "feedbackapp-5904d.firebaseapp.com",
+            databaseURL: "https://feedbackapp-5904d-default-rtdb.firebaseio.com",
+            projectId: "feedbackapp-5904d",
+            storageBucket: "feedbackapp-5904d.firebasestorage.app",
+            messagingSenderId: "620175464767",
+            appId: "1:620175464767:web:8054286a27a26210619b8a",
+            measurementId: "G-QH8JN7TE0J"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        // Get URL parameters and setup
+        const urlParams = new URLSearchParams(window.location.search);
+        const activityType = urlParams.get('type');
+        const telecallerEmail = urlParams.get('telecaller');
+        const telecallerName = telecallerEmail.split('@')[0];
+
+        // Debug function to check database connection
+        async function checkDatabaseConnection() {
+            try {
+                const db = firebase.database();
+                const connectedRef = db.ref(".info/connected");
+                connectedRef.on("value", (snap) => {
+                    if (snap.val() === true) {
+                        console.log("Connected to Firebase");
+                    } else {
+                        console.log("Not connected to Firebase");
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase connection error:", error);
+            }
+        }
+
+        // Function to load calls with improved error handling and debugging
+        async function loadCalls() {
+            try {
+                const db = firebase.database();
+                const ref = db.ref(telecallerName);
+                
+                const snapshot = await ref.once('value');
+                const calls = [];
+                
+                snapshot.forEach(child => {
+                    const callData = child.val();
+                    if (activityType === 'all' || 
+                        (activityType === 'not-lift' && callData.status === 'Unanswered') ||
+                        (activityType === 'callback' && callData.status === 'Callback') ||
+                        (activityType === 'interested' && callData.status === 'Interested')) {
+                        calls.push({
+                            number: callData.number,
+                            key: child.key  // Store Firebase key for updates
+                        });
+                    }
+                });
+
+                document.getElementById('totalCount').textContent = `(${calls.length})`;
+                
+                const callList = document.getElementById('callList');
+                if (calls.length === 0) {
+                    callList.innerHTML = '<div class="call-item">No calls found</div>';
+                    return;
+                }
+
+                callList.innerHTML = calls.map(call => `
+                    <div class="call-item">
+                        <div class="number-info">
+                            <div class="phone-number">${call.number}</div>
+                        </div>
+                        <button class="call-btn" onclick="initiateCall('${call.number}', '${call.key}')">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                            </svg>
+                            Call
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error in loadCalls:', error);
+                document.getElementById('callList').innerHTML = 
+                    `<div class="call-item">Error loading calls: ${error.message}</div>`;
+            }
+        }
+
+        // Function to go back
+        function goBack() {
+            window.location.href = 'dialpad.html';
+        }
+
+        // Function to initiate call
+        async function initiateCall(number, key) {
+            localStorage.setItem('currentCallingNumber', number);
+            localStorage.setItem('currentCallKey', key);
+            
+            window.location.href = `tel:${number}`;
+            
+            setTimeout(() => {
+                document.getElementById('callAnsweredPopup').style.display = 'flex';
+            }, 1000);
+        }
+
+        async function handleCallAnswer(wasAnswered) {
+            document.getElementById('callAnsweredPopup').style.display = 'none';
+            
+            if (wasAnswered) {
+                // Show second popup for status
+                document.getElementById('callStatusPopup').style.display = 'flex';
+            } else {
+                // Update as Unanswered
+                await updateCallStatus('Unanswered');
+                showSuccessMessage('Call status updated successfully!');
+            }
+        }
+
+        async function handleCallStatus(status) {
+            document.getElementById('callStatusPopup').style.display = 'none';
+            await updateCallStatus(status);
+            showSuccessMessage('Call status updated successfully!');
+        }
+
+        async function updateCallStatus(newStatus) {
+            try {
+                const number = localStorage.getItem('currentCallingNumber');
+                const key = localStorage.getItem('currentCallKey');
+                const db = firebase.database();
+                
+                // Update only necessary fields
+                const updates = {
+                    status: newStatus,
+                    dateTime: getCurrentDateTime(),
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                await db.ref(`${telecallerName}/${key}`).update(updates);
+                
+                showSuccessMessage('Call status updated successfully!');
+                
+                // Refresh the list
+                loadCalls();
+                
+                // Notify parent window to update counts
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({ type: 'statusUpdated' }, '*');
+                }
+
+            } catch (error) {
+                console.error('Error updating call status:', error);
+                showSuccessMessage('Error updating call status!', true);
+            }
+        }
+
+        // Helper function to get current date time in the required format
+        function getCurrentDateTime() {
+            const now = new Date();
+            const date = now.getDate().toString().padStart(2, '0');
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const year = now.getFullYear().toString().slice(-2);
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            
+            return `${date}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            const callItems = document.querySelectorAll('.call-item');
+            
+            callItems.forEach(item => {
+                const number = item.querySelector('.phone-number').textContent;
+                if (number.toLowerCase().includes(searchText)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Load calls when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, initializing...');
+            loadCalls();
+        });
+
+        // Add success message popup
+        function showSuccessMessage(message, isError = false) {
+            const popup = document.createElement('div');
+            popup.className = 'success-popup';
+            popup.style.backgroundColor = isError ? '#f44336' : '#4CAF50';
+            popup.textContent = message;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 2000);
+        }
+    </script>
+</body>
+</html> 

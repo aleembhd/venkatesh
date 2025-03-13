@@ -1,0 +1,806 @@
+
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+ .gnilogo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height:; Set the height to 100% of the viewport height */
+  }
+
+  .gnilogo img {
+    max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    height: auto; /* Maintain the image's aspect ratio */
+    margin-left: -10px;
+  }
+
+:root {
+  --primary-color: #1a73e8;
+  --secondary-color: #34a853;
+  --background-color: #f0f2f5;
+  --card-color: #ffffff;
+  --text-color: #202124;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+.department-title {
+  text-align: center; /* Center the text */
+}
+
+.department {
+  font-size: 15px; /* Adjust font size for "Department Of" */
+  display: block; /* Ensure it starts on a new line */
+}
+
+.highlight1{
+  /* color: #FF5733; Choose a catchy color (e.g., a vibrant orange) */
+  font-size: 17px; /* Adjust font size for "ELECTRONICS AND COMMUNICATION" */
+  white-space: nowrap; /* Prevents line breaks within the text */
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .department {
+      font-size: 18px; /* Adjust font size for "Department Of" on mobile */
+  }
+  
+  .highlight1 {
+      font-size: 20px; /* Adjust font size for "ELECTRONICS AND COMMUNICATION" on mobile */
+  }
+}
+.section-title {
+  text-align: center; /* Center the text */
+  font-size: 20px; /* Base font size for desktop */
+  /* padding-top: 0px; */
+}
+
+.highlight {
+  color: #4CAF50; /* Choose a catchy color (e.g., a vibrant green) */
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .section-title {
+      font-size: 18px; /* Adjust font size for mobile */
+  }
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--background-color);
+  margin: 0;
+  padding: 20px;
+  color: var(--text-color);
+  transition: background-color 0.3s ease;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: var(--card-color);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+h1, h2 {
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 500;
+}
+.searchbtn{
+  background-color: 131842;
+  font-weight: bold;
+}
+.allparents{
+  background-color: FF4C4C;
+  font-weight: bold;
+}
+.excelsheet{
+  background-color: 1A5319;
+  font-weight: bold;
+}
+.crsbtn{
+  background-color: 173B45;
+  font-weight: bold;
+}
+.search-container, .message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+input, textarea {
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+}
+
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+button:hover {
+  /* background-color: #1967d2; */
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+#messageAllBtn, #exportLogsBtn {
+  background-color: var(--secondary-color);
+  width: 100%;
+  margin-top: 10px;
+}
+
+#messageAllBtn:hover, #exportLogsBtn:hover {
+  background-color: #2d8d47;
+}
+
+.profile-card, .message-logs {
+  background-color: var(--card-color);
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.profile-card:hover, .message-logs:hover {
+  box-shadow: 0 4px 8px var(--shadow-color);
+  transform: translateY(-2px);
+}
+
+.profile-card h2 {
+  margin-top: 0;
+  font-size: 22px;
+  color: var(--primary-color);
+}
+
+.profile-card p, .message-logs p {
+  margin: 10px 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.action-buttons {
+display: flex;
+flex-wrap: wrap;
+justify-content: space-between;
+margin-top: 20px;
+}
+
+.action-buttons button {
+width: calc(33.33% - 5px);
+margin-bottom: 10px;
+}
+/* .action-buttons button {
+  width: 48%;
+}
+*/
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px;
+  }
+  h1 {
+    font-size: 28px;
+  }
+  h2 {
+    font-size: 20px;
+  }
+  input, textarea, button {
+    font-size: 14px;
+  }
+}
+#clearLogsBtn {
+background-color: #dc3545;
+width: 100%;
+margin-top: 10px;
+}
+
+#clearLogsBtn:hover {
+background-color: #c82333;
+}
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+#crProfiles{
+    width: 100%;
+}
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.button-container button {
+    width: 48%; /* Adjust as needed */
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 10px;
+}
+.btn{
+    background-color: rgb(105, 196, 105);
+}
+.msgallbtn{
+    background-color: #e86937
+
+}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+  --primary-color: #1a73e8;
+  --secondary-color: #34a853;
+  --background-color: #f0f2f5;
+  --card-color: #ffffff;
+  --text-color: #202124;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--background-color);
+  margin: 0;
+  padding: 20px;
+  color: var(--text-color);
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  background-color: var(--card-color);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.search-container, .message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+input, textarea {
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.action-buttons {
+display: flex;
+flex-direction: column;
+gap: 10px;
+margin-top: 20px;
+}
+@media (max-width: 480px) {
+.action-buttons button {
+  width: 100%;
+}
+}
+.top-buttons {
+display: flex;
+justify-content: space-between;
+gap: 10px;
+}
+.top-buttons button {
+width: calc(50% - 5px);
+}
+.bottom-button {
+display: flex;
+justify-content: center;
+}
+
+/* .action-buttons button {
+  width: 100%;
+}
+*/
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.button-container button {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 600px;
+    padding: 30px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  .action-buttons {
+    flex-direction: row;
+  }
+
+  /* .action-buttons button {
+    width: 48%;
+  } */
+
+  .button-container {
+    flex-direction: row;
+  }
+
+  .button-container button {
+    width: 48%;
+  }
+}
+@media (max-width: 767px) {
+    .container {
+      padding: 15px;
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    .profile-card h2 {
+      font-size: 18px;
+    }
+
+    .action-buttons {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    /* .action-buttons button {
+      width: 48%;
+    } */
+
+    #messageForm h2,
+    #bulkMessageForm h2,
+    .message-logs h2 {
+      font-size: 18px;
+    }
+
+    .message-logs p {
+      font-size: 14px;
+    }
+  }
+
+  /* Additional styles to ensure buttons are side by side on all screen sizes */
+  .action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+
+  /* .action-buttons button {
+    width: 48%;
+  } */
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.button-container button {
+    width: 48%;
+}
+
+@media (max-width: 767px) {
+    .button-container {
+        flex-direction: row;
+    }
+
+    .button-container button {
+        width: 48%;
+    }
+}
+.cr-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cr-info {
+  flex: 1;
+}
+
+.cr-photo {
+  width: 100px;
+  height: 100px;
+  margin-left: 20px;
+}
+
+.cr-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+@media (max-width: 767px) {
+  .cr-card {
+      flex-direction: row-reverse;
+  }
+
+  .cr-photo {
+      margin-left: 0;
+      margin-right: 20px;
+  }
+}
+textarea {
+  min-height: 100px;
+  resize: vertical;
+  overflow-y: hidden;
+}
+footer{
+text-align: center;
+font-size: 24px;
+}
+.cr-info h3{
+font-size: 20px;
+font-weight: bold;
+}
+.footer{
+font-size: 15px;
+}
+.profile-card {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.profile-info {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.custom-message-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-message-area textarea {
+  width: 100%;
+  min-height: 100px;
+  margin-bottom: 10px;
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column; /* Stack profile info and button rows */
+  padding: 20px; /* Default padding */
+}
+
+.profile-info {
+  flex: 1; /* Allow profile info to take available space */
+  margin-bottom: 20px; /* Space below profile info */
+}
+
+/* Button Row Styles */
+.button-row {
+  display: flex;
+  justify-content: space-between; /* Space out buttons */
+  align-items: center; /* Center buttons vertically */
+  gap: 10px; /* Default gap */
+}
+
+/* Media Query for Tablets and Small Devices */
+@media (max-width: 768px) {
+  .button-row {
+    flex-direction: row; /* Ensure buttons are in a row */
+    justify-content: space-between; /* Space out buttons */
+    align-items: stretch; /* Stretch buttons to full height */
+  }
+}
+
+/* Media Query for Mobile Devices */
+@media (max-width: 480px) {
+  .button-row {
+    flex-direction: row; /* Ensure buttons are in a row */
+    align-items: stretch; /* Stretch buttons to full width */
+    gap: 10px; /* Maintain a smaller gap */
+  }
+
+  .button-row button {
+    flex: 1; /* Allow buttons to take equal width */
+    min-width: 120px; /* Set a minimum width for buttons */
+  }
+}
+
+/* Additional Media Query for Very Small Screens */
+@media screen and (max-width: 400px) {
+  .button-row {
+    flex-direction: row; /* Ensure buttons remain in a row */
+  }
+
+  .button-row button {
+    width: 100%; /* Full width for buttons */
+    padding: 10px; /* Adjust padding */
+    font-size: 14px; /* Font size for smaller screens */
+  }
+}
+
+/* Styles for Desktop */
+@media (min-width: 769px) {
+  .button-row {
+    flex-direction: row; /* Ensure buttons are in a row */
+    justify-content: flex-start; /* Align buttons to the start */
+    gap: 20px; /* Increased gap for larger screens */
+  }
+
+  .button-row button {
+    padding: 10px 15px; /* Padding for desktop buttons */
+    font-size: 16px; /* Larger font size for desktop */
+    min-width: 150px; /* Minimum width for buttons on desktop */
+  }
+}
+.print-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.icon {
+  font-size: 1.2em;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+}
+
+.print-preview {
+  display: none;
+  position: fixed;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: white;
+  padding: 20px;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-preview, .print-preview * {
+    visibility: visible;
+  }
+  .print-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  /* Ensure the header and footer are visible when printing */
+  .print-preview h2,
+  .print-preview p {
+    visibility: visible !important;
+  }
+}
+
+/* Styles for the printable table */
+#printContent table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+#printContent th, #printContent td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+#printContent th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+#printContent tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Add or update these styles in your CSS file */
+.print-btn.fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 24px;
+  border: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  z-index: 1000;
+}
+
+.print-btn.fab:hover {
+  background-color: #1967d2;
+  transform: scale(1.1);
+}
+
+.print-btn.fab .icon {
+  font-size: inherit;
+}
+
+/* Adjust for smaller screens */
+@media (max-width: 600px) {
+  .print-btn.fab {
+    bottom: 10px;
+    right: 10px;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+}
+
+.print-preview {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  z-index: 9999;
+  overflow: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#printContent table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+#printContent th, #printContent td {
+  border: 1px solid #ddd;
+  padding: 4px;
+  text-align: left;
+}
+
+#printContent th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-preview, .print-preview * {
+    visibility: visible;
+  }
+  .print-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    margin: 0;
+  }
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+}

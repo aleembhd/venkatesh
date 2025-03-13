@@ -1,0 +1,381 @@
+<html><head><base href="tel:">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant Black & White Dial Pad</title>
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #FFFFFF;
+            --background-color: #F0F0F0;
+            --surface-color: #FFFFFF;
+            --text-color: #000000;
+            --muted-color: #888888;
+            --hover-color: #E0E0E0;
+        }
+    
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+    
+        .phone-dialer {
+            background-color: var(--surface-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            max-width: 340px;
+            width: 100%;
+        }
+    
+        .display {
+            font-size: 36px;
+            font-weight: 300;
+            color: var(--text-color);
+            margin-bottom: 25px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background-color: var(--background-color);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+    
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+    
+        .key {
+            background-color: var(--surface-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+    
+        @media (hover: hover) {
+            .key:hover {
+                background-color: var(--hover-color);
+            }
+        }
+    
+        .key:active {
+            background-color: var(--hover-color);
+            transform: scale(0.95);
+            transition: all 0.1s ease;
+        }
+    
+        .call-button {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 35px;
+            padding: 15px 30px;
+            font-size: 22px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+    
+        .call-button:hover {
+            background-color: #333333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+        }
+    
+        .call-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+    
+        .delete-button {
+            background-color: var(--muted-color);
+            border-color: var(--muted-color);
+            color: var(--surface-color);
+        }
+    
+        .delete-button:hover {
+            background-color: #666666;
+            border-color: #666666;
+        }
+    
+        .contact-info {
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--muted-color);
+        }
+    
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 1000;
+        }
+    
+        .back-button:hover {
+            background-color: #333333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    
+        .back-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+    
+        .back-button svg {
+            width: 20px;
+            height: 20px;
+        }
+    
+        @media (max-width: 768px) {
+            .back-button {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+    </head>
+    <body>
+        <button id="backButton" class="back-button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back
+        </button>
+
+        <div class="phone-dialer">
+            <div class="display" id="display"></div>
+            <div class="keypad">
+                <button class="key">1</button>
+                <button class="key">2</button>
+                <button class="key">3</button>
+                <button class="key">4</button>
+                <button class="key">5</button>
+                <button class="key">6</button>
+                <button class="key">7</button>
+                <button class="key">8</button>
+                <button class="key">9</button>
+                <button class="key">*</button>
+                <button class="key">0</button>
+                <button class="key">#</button>
+            </div>
+            <button class="key delete-button" id="deleteButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="call-button" id="callButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                    <path d="M20.01 15.38C18.78 15.38 17.59 15.18 16.48 14.82C16.13 14.7 15.74 14.79 15.47 15.06L13.9 17.03C11.07 15.68 8.42 13.13 7.01 10.2L8.96 8.54C9.23 8.26 9.31 7.87 9.2 7.52C8.83 6.41 8.64 5.22 8.64 3.99C8.64 3.45 8.19 3 7.65 3H4.19C3.65 3 3 3.24 3 3.99C3 13.28 10.73 21 20.01 21C20.72 21 21 20.37 21 19.82V16.37C21 15.83 20.55 15.38 20.01 15.38Z" fill="currentColor"/>
+                </svg>
+                Call
+            </button>
+            <div class="contact-info">
+                <p>Contact: Unknown</p>
+                <p>Location: India</p>
+            </div>
+        </div>
+    
+        <!-- Add this div for the call status popup -->
+        <div id="callStatusPopup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: var(--surface-color); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); text-align: center; max-width: 300px; width: 90%;">
+            <h3 style="color: var(--text-color); font-size: 24px; margin-bottom: 15px;">Call Status</h3>
+            <p style="color: var(--muted-color); font-size: 18px; margin-bottom: 25px;">Was the call answered?</p>
+            <div style="display: flex; justify-content: space-around;">
+                <button id="yesBtn" style="background-color: var(--primary-color); color: var(--secondary-color); border: none; padding: 10px 20px; border-radius: 25px; font-size: 16px; cursor: pointer; transition: all 0.3s ease;">Yes</button>
+                <button id="noBtn" style="background-color: var(--muted-color); color: var(--secondary-color); border: none; padding: 10px 20px; border-radius: 25px; font-size: 16px; cursor: pointer; transition: all 0.3s ease;">No</button>
+            </div>
+        </div>
+    
+        <!-- Add these script tags for Firebase -->
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+        <script>
+            const display = document.getElementById('display');
+            const keys = document.querySelectorAll('.key:not(.delete-button)');
+            const deleteButton = document.getElementById('deleteButton');
+            const callButton = document.getElementById('callButton');
+    
+            let phoneNumber = '';
+            let deleteInterval;
+            let callStartTime;
+    
+            function updateDisplay() {
+                display.textContent = phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3');
+            }
+    
+            keys.forEach(key => {
+                key.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); // Prevent default touch behavior
+                    if (phoneNumber.length < 10) {
+                        phoneNumber += key.textContent;
+                        updateDisplay();
+                        animateKey(key);
+                    }
+                });
+
+                key.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent default click behavior
+                    if (phoneNumber.length < 10) {
+                        phoneNumber += key.textContent;
+                        updateDisplay();
+                        animateKey(key);
+                    }
+                });
+            });
+    
+            function animateKey(key) {
+                key.style.backgroundColor = 'var(--hover-color)';
+                key.style.transform = 'scale(0.95)';
+                key.style.transition = 'all 0.1s ease';
+
+                setTimeout(() => {
+                    key.style.backgroundColor = '';
+                    key.style.transform = '';
+                    key.style.transition = 'all 0.2s ease';
+                }, 100);
+            }
+    
+            function deleteDigit() {
+                phoneNumber = phoneNumber.slice(0, -1);
+                updateDisplay();
+            }
+    
+            deleteButton.addEventListener('mousedown', (e) => {
+                e.preventDefault(); // Prevent text selection
+                deleteDigit();
+                deleteInterval = setInterval(deleteDigit, 150);
+            });
+    
+            deleteButton.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent scrolling on touch devices
+                deleteDigit();
+                deleteInterval = setInterval(deleteDigit, 150);
+            });
+    
+            function stopDelete() {
+                clearInterval(deleteInterval);
+            }
+    
+            deleteButton.addEventListener('mouseup', stopDelete);
+            deleteButton.addEventListener('mouseleave', stopDelete);
+            deleteButton.addEventListener('touchend', stopDelete);
+            deleteButton.addEventListener('touchcancel', stopDelete);
+    
+            const backButton = document.getElementById('backButton');
+            const callStatusPopup = document.getElementById('callStatusPopup');
+            const yesBtn = document.getElementById('yesBtn');
+            const noBtn = document.getElementById('noBtn');
+    
+            backButton.addEventListener('click', () => {
+                window.history.back(); // This will navigate to the previous page
+            });
+    
+            callButton.addEventListener('click', () => {
+                if (phoneNumber) {
+                    callStartTime = new Date();
+                    window.location.href = `tel:${phoneNumber}`;
+                    setTimeout(() => {
+                        callStatusPopup.style.display = 'block';
+                    }, 7000);
+                }
+            });
+    
+            function handleCallResponse(wasAnswered) {
+                const dialpadInfo = JSON.parse(localStorage.getItem('dialpadInfo')) || {};
+                const callEndTime = new Date();
+                const duration = wasAnswered ? Math.round((callEndTime - callStartTime) / 1000) : 0; // Duration in seconds
+
+                const callLog = {
+                    timestamp: new Date().toISOString(),
+                    sender: 'NVS Murthy',
+                    recipient: phoneNumber,
+                    studentName: dialpadInfo.studentName || 'Unknown',
+                    studentRoll: dialpadInfo.studentRoll || 'Unknown',
+                    parentName: dialpadInfo.parentName || 'Unknown',
+                    message: `Phone call to ${phoneNumber} - ${wasAnswered ? 'Answered' : 'Not Answered'}`,
+                    status: wasAnswered ? 'answered' : 'not answered',
+                    platform: 'Phone',
+                    duration: wasAnswered ? `${duration} seconds` : 'N/A'
+                };
+
+                // Save to Firebase
+                firebase.database().ref('messageLogs').push(callLog)
+                    .then(() => {
+                        console.log('Call log saved successfully');
+                        alert('Call log saved successfully');
+                        // Notify the main page to update the message logs
+                        window.opener.postMessage('updateMessageLogs', '*');
+                    })
+                    
+
+                callStatusPopup.style.display = 'none';
+                setTimeout(() => {
+                    window.close(); // Close the dialpad window
+                }, 1000);
+            }
+    
+            yesBtn.addEventListener('click', () => handleCallResponse(true));
+            noBtn.addEventListener('click', () => handleCallResponse(false));
+    
+            // Initialize display
+            updateDisplay();
+    
+            // Load phone number if available
+            const dialpadInfo = JSON.parse(localStorage.getItem('dialpadInfo'));
+            if (dialpadInfo && dialpadInfo.phone) {
+                phoneNumber = dialpadInfo.phone.replace(/\D/g, '');
+                updateDisplay();
+            }
+    
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyBRp7Gv6rw32zakHZZFQ-zxm-ndKL49sh8",
+                authDomain: "studentconnect-6f32b.firebaseapp.com",
+                databaseURL: "https://studentconnect-6f32b-default-rtdb.firebaseio.com",
+                projectId: "studentconnect-6f32b",
+                storageBucket: "studentconnect-6f32b.appspot.com",
+                messagingSenderId: "520897019550",
+                appId: "1:520897019550:web:fb7365a6ca17d30913858f"
+            };
+    
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+        </script>
+    </body>
+    </html>

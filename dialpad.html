@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant Black & White Dial Pad</title>
+    <!-- Add PWA meta tags -->
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/logo.png">
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #FFFFFF;
+            --background-color: #F0F0F0;
+            --surface-color: #FFFFFF;
+            --text-color: #000000;
+            --muted-color: #888888;
+            --hover-color: #E0E0E0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .phone-dialer {
+            background-color: var(--surface-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            max-width: 340px;
+            width: 100%;
+        }
+
+        .display {
+            font-size: 36px;
+            font-weight: 300;
+            color: var(--text-color);
+            margin-bottom: 25px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background-color: var(--background-color);
+            border-radius: 12px;
+            transition: none;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .key {
+            background-color: var(--surface-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: none;
+            overflow: hidden;
+            position: relative;
+            -webkit-tap-highlight-color: transparent; /* Remove blue highlight on mobile */
+        }
+
+        .key:active {
+            background-color: var(--hover-color);
+            transform: none;
+        }
+
+        /* Remove the ::after pseudo-element */
+        .key::after {
+            display: none;
+        }
+
+        .call-button {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 35px;
+            padding: 15px 30px;
+            font-size: 22px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .call-button:hover {
+            background-color: #333333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+        }
+
+        .call-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .delete-button {
+            background-color: var(--surface-color) !important;
+            border: 2px solid var(--primary-color) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .delete-button:hover {
+            background-color: var(--hover-color) !important;
+        }
+
+        .contact-info {
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--muted-color);
+        }
+
+        /* New styles for the popup card */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-card {
+            background-color: var(--surface-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .popup-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .popup-buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .popup-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: none;
+        }
+
+        .yes-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .no-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .popup-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .popup-button:active {
+            transform: translateY(0);
+        }
+
+        /* Additional styles for the second popup */
+        .popup-card-2 {
+            background-color: var(--surface-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .popup-buttons-2 {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .popup-button-2 {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: none;
+        }
+
+        .not-interested-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .interested-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .callback-button {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .popup-button-2:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .popup-button-2:active {
+            transform: translateY(0);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            border-radius: 0.2rem;
+        }
+
+        .btn-success {
+            color: #fff;
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn + .btn {
+            margin-left: 0.3rem;
+        }
+
+        .error-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        /* New styles for the lifted/not lifted popup */
+        .popup-card-lifted {
+            background-color: var(--surface-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .popup-buttons-lifted {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .popup-button-lifted {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: none;
+        }
+
+        .lifted-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .not-lifted-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .popup-button-lifted:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .popup-button-lifted:active {
+            transform: translateY(0);
+        }
+
+        /* Stylish back button styles */
+        .back-btn-wrapper {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .stylish-back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .stylish-back-btn:hover {
+            transform: translateX(-5px);
+            background: #333;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .back-arrow {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .stylish-back-btn:hover .back-arrow {
+            transform: translateX(-3px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .back-btn-wrapper {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+            }
+
+            .stylish-back-btn {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+
+            .back-arrow {
+                font-size: 16px;
+            }
+
+            /* Adjust main content spacing to prevent overlap */
+            .container {
+                padding-top: 60px !important;
+            }
+        }
+
+        /* Add these new styles */
+        .activity-btn-wrapper {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .activity-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--surface-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 10px 0;
+            margin-top: 5px;
+            display: none;
+            min-width: 200px;
+        }
+
+        .activity-dropdown.show {
+            display: block;
+        }
+
+        .activity-option {
+            padding: 12px 20px;
+            color: var(--text-color);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .activity-option:hover {
+            background-color: var(--hover-color);
+        }
+
+        .activity-count {
+            color: var(--muted-color);
+            font-size: 0.9rem;
+        }
+
+        /* Add these styles */
+        .number-pill {
+            background: #000;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            margin-left: 20px;
+            width: fit-content;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .number {
+            font-size: 16px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-btn-wrapper">
+        <button class="stylish-back-btn" id="backToIndex">
+            <span class="back-arrow">←</span>
+            <span>Back</span>
+        </button>
+    </div>
+
+    <!-- Add My Activity Button Here -->
+    
+
+    <div class="phone-dialer">
+        <div class="display" id="display"></div>
+        <div class="keypad" id="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key">6</button>
+            <button class="key">7</button>
+            <button class="key">8</button>
+            <button class="key">9</button>
+            <button class="key">*</button>
+            <button class="key">0</button>
+            <button class="key">#</button>
+        </div>
+        <button class="key delete-button" id="deleteButton">
+            <img src="images/backspace.svg" alt="Delete" style="width: 35px; height: 35px;">
+        </button>
+        <button class="call-button" id="callButton">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                <path d="M20.01 15.38C18.78 15.38 17.59 15.18 16.48 14.82C16.13 14.7 15.74 14.79 15.47 15.06L13.9 17.03C11.07 15.68 8.42 13.13 7.01 10.2L8.96 8.54C9.23 8.26 9.31 7.87 9.2 7.52C8.83 6.41 8.64 5.22 8.64 3.99C8.64 3.45 8.19 3 7.65 3H4.19C3.65 3 3 3.24 3 3.99C3 13.28 10.73 21 20.01 21C20.72 21 21 20.37 21 19.82V16.37C21 15.83 20.55 15.38 20.01 15.38Z" fill="currentColor"/>
+            </svg>
+            Call
+        </button>
+        <div class="contact-info">
+            <p>Ai Powered Dialpad </p>
+            <!-- <p>End to End Encrypted 🔒</p> -->
+            
+        </div>
+
+    </div>
+
+    <!-- New popup overlay and card -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-card">
+            <div class="number-pill">
+                <span class="dot"></span>
+                <span class="number"></span>
+            </div>
+            <div class="popup-title">Was The Call Answered?</div>
+            <div class="popup-buttons">
+                <button class="popup-button yes-button" id="yesButton">YES</button>
+                <button class="popup-button no-button" id="noButton">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New popup overlay and card for call status -->
+    <div class="popup-overlay" id="popupOverlay2">
+        <div class="popup-card-2">
+            <div class="popup-title">Call Status</div>
+            <div class="popup-buttons-2">
+                <button class="popup-button-2 interested-button" id="interestedButton">Interested</button>
+                <button class="popup-button-2 callback-button" id="callbackButton">Callback</button>
+                <button class="popup-button-2 not-interested-button" id="notInterestedButton">Not Interested</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New popup overlay and card for lifted/not lifted -->
+    <div class="popup-overlay" id="popupOverlayLifted">
+        <div class="popup-card-lifted">
+            <div class="popup-title">Was The Call Lifted?</div>
+            <div class="popup-buttons-lifted">
+                <button class="popup-button-lifted lifted-button" id="liftedButton">Lifted</button>
+                <button class="popup-button-lifted not-lifted-button" id="notLiftedButton">Not Lifted</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="error-popup" id="errorPopup">
+        Please enter a proper 10-digit mobile number to make calls.
+    </div>
+
+    <!-- Add these script tags before your existing script -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Get the telecaller email from localStorage
+        const telecallerEmail = localStorage.getItem('telecallerEmail');
+
+        // Modify the updateCallStatus function
+        function updateCallStatus(number, status, notes, callIcon) {
+            const telecallerEmail = localStorage.getItem('telecallerEmail');
+            const telecallerName = telecallerEmail.split('@')[0];
+
+            // Special handling for "Not Interested" status
+            let formattedStatus;
+            if (status.toLowerCase() === 'not interested') {
+                formattedStatus = 'Not Interested';
+            } else {
+                formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+            }
+
+            const callData = {
+                number: number,
+                status: formattedStatus,
+                notes: notes,
+                duration: formattedStatus === 'Unanswered' ? 
+                    '<img src="images/missed-calls.png" width="17" height="17" alt="Missed Call"> Missed' :
+                    '<img src="images/outgoing-calls.png" width="17" height="17" alt="Outgoing Call"> Outgoing',
+                dateTime: getCurrentDateTime(),
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                telecallerEmail: telecallerEmail,
+                source: "dialpad"
+            };
+
+            console.log('Saving call data:', callData);
+
+            // Store under telecaller name node
+            database.ref(telecallerName).push(callData)
+                .then(() => {
+                    console.log('Call data saved successfully:', callData);
+                    if (window.opener && !window.opener.closed) {
+                        window.opener.postMessage({ type: 'callUpdated', call: callData }, '*');
+                    }
+                    resetDialpad();
+                })
+                .catch((error) => {
+                    console.error('Error saving call data:', error);
+                    alert('Failed to save call data. Please try again.');
+                });
+        }
+
+        const display = document.getElementById('display');
+        const keypad = document.getElementById('keypad');
+        const deleteButton = document.getElementById('deleteButton');
+        const callButton = document.getElementById('callButton');
+
+        let phoneNumber = '';
+        let callStartTime;
+        let callEndTime;
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLrrkbXcW-exG8_n4kOEmzA-SETMWqo-0",
+            authDomain: "feedbackapp-5904d.firebaseapp.com",
+            databaseURL: "https://feedbackapp-5904d-default-rtdb.firebaseio.com",
+            projectId: "feedbackapp-5904d",
+            storageBucket: "feedbackapp-5904d.firebasestorage.app",
+            messagingSenderId: "620175464767",
+            appId: "1:620175464767:web:8054286a27a26210619b8a",
+            measurementId: "G-QH8JN7TE0J"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get a reference to the database service
+        const database = firebase.database();
+
+        // Use event delegation for better performance
+        keypad.addEventListener('click', (e) => {
+            if (e.target.classList.contains('key') && phoneNumber.length < 10) {
+                phoneNumber += e.target.textContent;
+                updateDisplay();
+            }
+        });
+
+        function updateDisplay() {
+            display.textContent = phoneNumber;
+        }
+
+        deleteButton.addEventListener('click', deleteLastDigit);
+        deleteButton.addEventListener('mousedown', startDelete);
+        deleteButton.addEventListener('touchstart', startDelete);
+        deleteButton.addEventListener('mouseup', stopDelete);
+        deleteButton.addEventListener('mouseleave', stopDelete);
+        deleteButton.addEventListener('touchend', stopDelete);
+
+        let deleteInterval;
+
+        function startDelete(e) {
+            e.preventDefault();
+            deleteLastDigit();
+            deleteInterval = setInterval(deleteLastDigit, 150);
+        }
+
+        function stopDelete() {
+            clearInterval(deleteInterval);
+        }
+
+        function deleteLastDigit() {
+            phoneNumber = phoneNumber.slice(0, -1);
+            updateDisplay();
+        }
+
+        callButton.addEventListener('click', () => {
+            if (phoneNumber.length === 10) {
+                initiateCall();
+            } else {
+                showErrorPopup();
+            }
+        });
+
+        // Add this function right after Firebase initialization
+        async function checkAndDeleteExistingNumber(number) {
+            const telecallerEmail = localStorage.getItem('telecallerEmail');
+            const telecallerName = telecallerEmail.split('@')[0];
+            
+            try {
+                // Reference to telecaller's data
+                const dbRef = firebase.database().ref(telecallerName);
+                
+                // Check for existing number
+                const snapshot = await dbRef
+                    .orderByChild('number')
+                    .equalTo(number)
+                    .once('value');
+                
+                // If number exists, delete it
+                if (snapshot.exists()) {
+                    const updates = {};
+                    snapshot.forEach(childSnapshot => {
+                        updates[childSnapshot.key] = null;
+                    });
+                    
+                    // Delete existing entry
+                    await dbRef.update(updates);
+                    console.log(`Deleted existing entry for number: ${number}`);
+                }
+                
+                return true; // Continue with new call
+            } catch (error) {
+                console.error('Error checking/deleting existing number:', error);
+                return false;
+            }
+        }
+
+        // Modify the initiateCall function to use the new check
+        function initiateCall() {
+            if (phoneNumber.length === 10) {
+                // First check and delete existing number
+                checkAndDeleteExistingNumber(phoneNumber)
+                    .then(success => {
+                        if (success) {
+                            window.location.href = `tel:${phoneNumber}`;
+                            callStartTime = new Date();
+                            savePhoneNumber(phoneNumber);
+                            
+                            // Set timeout for the popup and update the number pill
+                            setTimeout(() => {
+                                document.getElementById('popupOverlay').style.display = 'flex';
+                                updateNumberPill(phoneNumber);
+                                savePopupState();
+                            }, 15000);
+                            
+                            checkExistingCallAndUpdate(phoneNumber);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error in number check:', error);
+                        window.location.href = `tel:${phoneNumber}`;
+                        callStartTime = new Date();
+                        savePhoneNumber(phoneNumber);
+                        
+                        // Set timeout for the popup and update the number pill
+                        setTimeout(() => {
+                            document.getElementById('popupOverlay').style.display = 'flex';
+                            updateNumberPill(phoneNumber);
+                            savePopupState();
+                        }, 15000);
+                        
+                        checkExistingCallAndUpdate(phoneNumber);
+                    });
+            } else {
+                showErrorPopup();
+            }
+        }
+
+        function checkExistingCallAndUpdate(number) {
+            const telecallerEmail = localStorage.getItem('telecallerEmail');
+            const telecallerName = telecallerEmail.split('@')[0];
+
+            // Reference to the telecaller's node
+            const dbRef = database.ref(telecallerName);
+            
+            dbRef.orderByChild('number')
+                .equalTo(number)
+                .once('value', snapshot => {
+                    let existingCall = null;
+                    snapshot.forEach(childSnapshot => {
+                        existingCall = { key: childSnapshot.key, ...childSnapshot.val() };
+                        return true;
+                    });
+
+                    if (existingCall) {
+                        if (existingCall.status === 'Interested') {
+                            // For "Interested" status, show the "Was The Call Lifted?" popup after 15 seconds
+                            setTimeout(() => {
+                                showLiftedPopup(existingCall);
+                            }, 15000);
+                        } else if (existingCall.status === 'Not Interested' || 
+                                 existingCall.status === 'Unanswered' || 
+                                 existingCall.status === 'Callback') {
+                            // Remove the existing record
+                            dbRef.child(existingCall.key).remove()
+                                .then(() => {
+                                    console.log(`Removed existing call for ${number}`);
+                                    setTimeout(() => {
+                                        document.getElementById('popupOverlay').style.display = 'flex';
+                                        savePopupState();
+                                    }, 15000);
+                                })
+                                .catch((error) => {
+                                    console.error('Error removing existing call:', error);
+                                });
+                        }
+                    } else {
+                        setTimeout(() => {
+                            document.getElementById('popupOverlay').style.display = 'flex';
+                            savePopupState();
+                        }, 15000);
+                    }
+                });
+        }
+
+        // Add these with other initializations at the top
+        let liftedShortHistory = JSON.parse(localStorage.getItem('liftedShortHistory') || '[]');
+        let liftedMediumHistory = JSON.parse(localStorage.getItem('liftedMediumHistory') || '[]');
+
+        // Modify the updateExistingInterestedCall function
+        function updateExistingInterestedCall(existingCall, wasLifted) {
+            if (wasLifted) {
+                // Calculate duration first
+                duration = calculateDuration();
+                const durationParts = duration.split(/min |sec/);
+                let totalSeconds = 0;
+                
+                // Convert duration to seconds
+                if (durationParts.length === 2) {
+                    totalSeconds = parseInt(durationParts[0]);
+                } else if (durationParts.length === 3) {
+                    totalSeconds = parseInt(durationParts[0]) * 60 + parseInt(durationParts[1]);
+                }
+
+                if (totalSeconds >= 18 && totalSeconds <= 30) {
+                    // Medium duration logic (18-30 seconds)
+                    const weights = [7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11, 12];
+                    
+                    const lastMediumDuration = liftedMediumHistory.length > 0 ? 
+                        parseInt(liftedMediumHistory[liftedMediumHistory.length - 1]) : null;
+                    
+                    let availableWeights = weights.filter(w => w !== lastMediumDuration);
+                    
+                    const randomIndex = Math.floor(Math.random() * availableWeights.length);
+                    totalSeconds = availableWeights[randomIndex];
+                    
+                    liftedMediumHistory.push(totalSeconds);
+                    localStorage.setItem('liftedMediumHistory', JSON.stringify(liftedMediumHistory));
+                    
+                } else if (totalSeconds < 18) {
+                    // Short duration logic (< 18 seconds)
+                    const shortWeights = [2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6];
+                    
+                    const lastShortDuration = liftedShortHistory.length > 0 ? 
+                        parseInt(liftedShortHistory[liftedShortHistory.length - 1]) : null;
+                    
+                    let availableWeights = shortWeights.filter(w => w !== lastShortDuration);
+                    
+                    const randomIndex = Math.floor(Math.random() * availableWeights.length);
+                    totalSeconds = availableWeights[randomIndex];
+                    
+                    liftedShortHistory.push(totalSeconds);
+                    localStorage.setItem('liftedShortHistory', JSON.stringify(liftedShortHistory));
+                    
+                } else if (totalSeconds > 30) {
+                    // For durations > 30 seconds, subtract 28 seconds
+                    totalSeconds = Math.max(0, totalSeconds - 28);
+                }
+
+                // Convert back to original format
+                if (totalSeconds < 60) {
+                    duration = `${totalSeconds}sec`;
+                } else {
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    duration = `${minutes}min ${seconds}sec`;
+                }
+
+                const updatedFields = {
+                    dateTime: getCurrentDateTime(),
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    duration: duration
+                };
+
+                database.ref('calls').child(existingCall.key).update(updatedFields)
+                    .then(() => {
+                        console.log(`Updated existing Interested call for ${existingCall.number}`);
+                        if (window.opener && !window.opener.closed) {
+                            window.opener.postMessage({ type: 'callUpdated', call: {...existingCall, ...updatedFields} }, '*');
+                        }
+                        document.getElementById('popupOverlayLifted').style.display = 'none';
+                        resetDialpad();
+                    })
+                    .catch((error) => {
+                        console.error('Error updating existing Interested call:', error);
+                    });
+            } else {
+                // If not lifted, just close the popup and clear the display
+                document.getElementById('popupOverlayLifted').style.display = 'none';
+                resetDialpad();
+            }
+        }
+
+        function handleCallAnswer(wasAnswered) {
+            if (wasAnswered) {
+                document.getElementById('popupOverlay').style.display = 'none';
+                document.getElementById('popupOverlay2').style.display = 'flex';
+                savePopupState();
+            } else {
+                // For unanswered calls
+                updateCallStatus(
+                    phoneNumber, 
+                    'Unanswered', 
+                    'Call was not answered'
+                );
+                document.getElementById('popupOverlay').style.display = 'none';
+                sessionStorage.removeItem('activePopup');
+            }
+        }
+
+        // Add this new function to update the number pill
+        function updateNumberPill(number) {
+            const numberElement = document.querySelector('.number-pill .number');
+            if (numberElement) {
+                numberElement.textContent = number;
+            }
+        }
+
+        // Add this at the top of your script section, after the Firebase initialization
+        let lastUsedDurations = JSON.parse(localStorage.getItem('lastUsedDurations') || '[]');
+
+        // Add this at the top of your script section, after the Firebase initialization
+        let notInterestedHistory = JSON.parse(localStorage.getItem('notInterestedHistory') || '[]');
+
+        // Add at the top with other initializations
+        let callbackShortHistory = JSON.parse(localStorage.getItem('callbackShortHistory') || '[]');
+        let callbackMediumHistory = JSON.parse(localStorage.getItem('callbackMediumHistory') || '[]');
+
+        // Add these with other initializations at the top
+        let interestedShortHistory = JSON.parse(localStorage.getItem('interestedShortHistory') || '[]');
+        let interestedMediumHistory = JSON.parse(localStorage.getItem('interestedMediumHistory') || '[]');
+
+        function handleCallStatus(status) {
+            let duration;
+            
+            if (status === 'Not Interested') {
+                // Calculate actual duration first
+                duration = calculateDuration();
+                const durationParts = duration.split(/min |sec/);
+                let totalSeconds = 0;
+                
+                // Convert duration to seconds
+                if (durationParts.length === 2) {
+                    totalSeconds = parseInt(durationParts[0]);
+                } else if (durationParts.length === 3) {
+                    totalSeconds = parseInt(durationParts[0]) * 60 + parseInt(durationParts[1]);
+                }
+
+                // Define duration sets
+                const shorterDurations = [6, 7, 8, 9];
+                const longerDurations = [10, 11, 12, 13];
+                
+                // Choose duration based on threshold
+                let selectedDuration;
+                if (totalSeconds < 33) {
+                    // For calls under 33 seconds, randomly select from shorter durations
+                    const randomIndex = Math.floor(Math.random() * shorterDurations.length);
+                    selectedDuration = shorterDurations[randomIndex];
+                } else {
+                    // For calls 33 seconds or longer, randomly select from longer durations
+                    const randomIndex = Math.floor(Math.random() * longerDurations.length);
+                    selectedDuration = longerDurations[randomIndex];
+                }
+
+                // Convert to final format
+                duration = `${selectedDuration}sec`;
+            } else if (status === 'Callback') {
+                // Calculate duration first
+                duration = calculateDuration();
+                const durationParts = duration.split(/min |sec/);
+                let totalSeconds = 0;
+                
+                // Convert duration to seconds
+                if (durationParts.length === 2) {
+                    totalSeconds = parseInt(durationParts[0]);
+                } else if (durationParts.length === 3) {
+                    totalSeconds = parseInt(durationParts[0]) * 60 + parseInt(durationParts[1]);
+                }
+
+                if (totalSeconds >= 30 && totalSeconds <= 42) {
+                    // Only 10, 11, 12, 13 seconds for 30-42 seconds duration
+                    const weights = [10, 11, 12, 13];
+                    const randomIndex = Math.floor(Math.random() * weights.length);
+                    totalSeconds = weights[randomIndex];
+                } else if (totalSeconds >= 18 && totalSeconds <= 30) {
+                    // Medium duration logic (18-30 seconds)
+                    const weights = [7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11, 12];
+                    
+                    const lastMediumDuration = callbackMediumHistory.length > 0 ? 
+                        parseInt(callbackMediumHistory[callbackMediumHistory.length - 1]) : null;
+                    
+                    let availableWeights = weights.filter(w => w !== lastMediumDuration);
+                    
+                    const randomIndex = Math.floor(Math.random() * availableWeights.length);
+                    totalSeconds = availableWeights[randomIndex];
+                    
+                    callbackMediumHistory.push(totalSeconds);
+                    localStorage.setItem('callbackMediumHistory', JSON.stringify(callbackMediumHistory));
+                    
+                } else if (totalSeconds < 18) {
+                    // Short duration logic (< 18 seconds)
+                    const shortWeights = [2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6];
+                    
+                    const lastShortDuration = callbackShortHistory.length > 0 ? 
+                        parseInt(callbackShortHistory[callbackShortHistory.length - 1]) : null;
+                    
+                    let availableWeights = shortWeights.filter(w => w !== lastShortDuration);
+                    
+                    const randomIndex = Math.floor(Math.random() * availableWeights.length);
+                    totalSeconds = availableWeights[randomIndex];
+                    
+                    callbackShortHistory.push(totalSeconds);
+                    localStorage.setItem('callbackShortHistory', JSON.stringify(callbackShortHistory));
+                    
+                } else if (totalSeconds > 42) {
+                    // For durations > 42 seconds, subtract 28 seconds
+                    totalSeconds = Math.max(0, totalSeconds - 28);
+                }
+
+                // Convert back to original format
+                if (totalSeconds < 60) {
+                    duration = `${totalSeconds}sec`;
+                } else {
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    duration = `${minutes}min ${seconds}sec`;
+                }
+            } else if (status === 'Interested') {
+                duration = calculateDuration();
+                const durationParts = duration.split(/min |sec/);
+                let totalSeconds = 0;
+                
+                // Convert duration to seconds
+                if (durationParts.length === 2) {
+                    totalSeconds = parseInt(durationParts[0]);
+                } else if (durationParts.length === 3) {
+                    totalSeconds = parseInt(durationParts[0]) * 60 + parseInt(durationParts[1]);
+                }
+                
+                if (totalSeconds >= 30 && totalSeconds <= 42) {
+                    // Only 10, 11, 12, 13 seconds for 30-42 seconds duration
+                    const weights = [10, 11, 12, 13];
+                    const randomIndex = Math.floor(Math.random() * weights.length);
+                    totalSeconds = weights[randomIndex];
+                } else if (totalSeconds >= 18 && totalSeconds <= 30) {
+                    // Existing logic for 18-30 seconds
+                    const weights = [7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11, 12];
+                    const lastMediumDuration = interestedMediumHistory.length > 0 ? 
+                        parseInt(interestedMediumHistory[interestedMediumHistory.length - 1]) : null;
+                    let availableWeights = weights.filter(w => w !== lastMediumDuration);
+                    const randomIndex = Math.floor(Math.random() * availableWeights.length);
+                    totalSeconds = availableWeights[randomIndex];
+                    interestedMediumHistory.push(totalSeconds);
+                    localStorage.setItem('interestedMediumHistory', JSON.stringify(interestedMediumHistory));
+                } else if (totalSeconds < 18) {
+                    // Existing logic for < 18 seconds
+                    const shortWeights = [2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6];
+                    const lastShortDuration = interestedShortHistory.length > 0 ? 
+                        parseInt(interestedShortHistory[interestedShortHistory.length - 1]) : null;
+                    let availableWeights = shortWeights.filter(w => w !== lastShortDuration);
+                    const randomIndex = Math.floor(Math.random() * availableWeights.length);
+                    totalSeconds = availableWeights[randomIndex];
+                    interestedShortHistory.push(totalSeconds);
+                    localStorage.setItem('interestedShortHistory', JSON.stringify(interestedShortHistory));
+                } else if (totalSeconds > 42) {
+                    // For durations > 42 seconds, subtract 28 seconds
+                    totalSeconds = Math.max(0, totalSeconds - 28);
+                }
+                
+                // Convert back to original format
+                if (totalSeconds < 60) {
+                    duration = `${totalSeconds}sec`;
+                } else {
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    duration = `${minutes}min ${seconds}sec`;
+                }
+            } else {
+                duration = calculateDuration();
+                
+                // For both Callback and Interested status
+                if (status === 'Callback' || status === 'Interested') {
+                    const durationParts = duration.split(/min |sec/);
+                    let totalSeconds = 0;
+                    
+                    // Convert duration to seconds
+                    if (durationParts.length === 2) {
+                        // Format: "Xsec"
+                        totalSeconds = parseInt(durationParts[0]);
+                    } else if (durationParts.length === 3) {
+                        // Format: "Xmin Ysec"
+                        totalSeconds = parseInt(durationParts[0]) * 60 + parseInt(durationParts[1]);
+                    }
+                    
+                    // For Callback status, check original duration first
+                    if (status === 'Callback') {
+                        if (totalSeconds >= 18 && totalSeconds <= 30) {
+                            // If duration is between 18-30 seconds, use weighted random number
+                            const weights = [
+                                7, 7, 7, 7,  // 7 appears 4 times (higher probability)
+                                8, 8, 8, 8,  // 8 appears 4 times
+                                9, 9, 9,     // 9 appears 3 times
+                                10, 10,      // 10 appears 2 times
+                                11, 11,      // 11 appears 2 times
+                                12           // 12 appears 1 time (lowest probability)
+                            ];
+                            
+                            const randomIndex = Math.floor(Math.random() * weights.length);
+                            totalSeconds = weights[randomIndex];
+                        } else if (totalSeconds > 30) {
+                            // If duration is above 30 seconds, subtract 28 seconds
+                            totalSeconds = Math.max(0, totalSeconds - 28);
+                        } else if (totalSeconds < 18) {
+                            // For durations less than 18 seconds, use weighted random number
+                            const shortWeights = [
+                                2,           // 2 appears 1 time (lowest probability)
+                                3, 3, 3,    // 3 appears 3 times
+                                4, 4, 4,    // 4 appears 3 times
+                                5, 5, 5,    // 5 appears 3 times
+                                6, 6, 6     // 6 appears 3 times
+                            ];
+                            
+                            const randomIndex = Math.floor(Math.random() * shortWeights.length);
+                            totalSeconds = shortWeights[randomIndex];
+                        }
+                    } else if (status === 'Interested') {
+                        // For Interested status, always subtract 28 seconds
+                        totalSeconds = Math.max(0, totalSeconds - 28);
+                    }
+                    
+                    // Convert back to original format
+                    if (totalSeconds < 60) {
+                        duration = `${totalSeconds}sec`;
+                    } else {
+                        const minutes = Math.floor(totalSeconds / 60);
+                        const seconds = totalSeconds % 60;
+                        duration = `${minutes}min ${seconds}sec`;
+                    }
+                }
+            }
+
+            const notes = status;
+            updateCallStatus(phoneNumber, status, notes, duration);
+            document.getElementById('popupOverlay2').style.display = 'none';
+            sessionStorage.removeItem('activePopup');
+        }
+
+        function calculateDuration() {
+            if (!callStartTime) return 'N/A';
+            callEndTime = new Date();
+            const durationInSeconds = Math.round((callEndTime - callStartTime) / 1000);
+            
+            if (durationInSeconds < 60) {
+                return `${durationInSeconds}sec`;
+            } else {
+                const minutes = Math.floor(durationInSeconds / 60);
+                const seconds = durationInSeconds % 60;
+                return `${minutes}min ${seconds}sec`;
+            }
+        }
+
+        function getCurrentDateTime() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            
+            // Format time in 12-hour with AM/PM
+            const time = now.toLocaleTimeString('en-US', { 
+                hour: 'numeric',  // Use numeric for single digit hours (1-12)
+                minute: '2-digit',
+                hour12: true // This ensures 12-hour format with AM/PM
+            });
+            
+            return `${day}/${month}/${year.toString().slice(-2)} ${time}`;
+        }
+
+        function notifyParentWindow(data) {
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage(data, '*');
+            }
+        }
+
+        function resetDialpad() {
+            phoneNumber = '';
+            updateDisplay();
+        }
+
+        // Add event listeners for the popup buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('yesButton').addEventListener('click', function() {
+                console.log('Yes button clicked');
+                handleCallAnswer(true);
+            });
+
+            document.getElementById('noButton').addEventListener('click', function() {
+                console.log('No button clicked');
+                handleCallAnswer(false);
+            });
+
+            document.getElementById('interestedButton').addEventListener('click', function() {
+                console.log('Interested button clicked');
+                handleCallStatus('Interested');
+            });
+
+            document.getElementById('callbackButton').addEventListener('click', function() {
+                console.log('Callback button clicked');
+                handleCallStatus('Callback');
+            });
+
+            document.getElementById('notInterestedButton').addEventListener('click', function() {
+                console.log('Not Interested button clicked');
+                handleCallStatus('Not Interested');
+            });
+
+            document.getElementById('liftedButton').addEventListener('click', function() {
+                updateExistingInterestedCall(existingCall, true);
+            });
+
+            document.getElementById('notLiftedButton').addEventListener('click', function() {
+                updateExistingInterestedCall(existingCall, false);
+            });
+        });
+
+        function formatTime(date) {
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = (hours % 12 || 12).toString();
+            return `${formattedHours}:${minutes}${ampm}`;
+        }
+
+        // Modify the showLiftedPopup function
+        function showLiftedPopup(existingCall) {
+            document.getElementById('popupOverlayLifted').style.display = 'flex';
+            
+            document.getElementById('liftedButton').onclick = function() {
+                updateExistingInterestedCall(existingCall, true);
+            };
+            
+            document.getElementById('notLiftedButton').onclick = function() {
+                updateExistingInterestedCall(existingCall, false);
+            };
+        }
+
+        // Add this function to show error message
+        function showErrorPopup() {
+            const errorPopup = document.getElementById('errorPopup');
+            errorPopup.style.display = 'block';
+            setTimeout(() => {
+                errorPopup.style.display = 'none';
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Add after Firebase initialization
+        function savePopupState() {
+            sessionStorage.setItem('activePopup', JSON.stringify({
+                firstPopup: document.getElementById('popupOverlay').style.display === 'flex',
+                secondPopup: document.getElementById('popupOverlay2').style.display === 'flex',
+                liftedPopup: document.getElementById('popupOverlayLifted').style.display === 'flex',
+                currentNumber: phoneNumber
+            }));
+        }
+
+        // Add this function to store phone number
+        function savePhoneNumber(number) {
+            sessionStorage.setItem('lastDialedNumber', number);
+        }
+
+        // Modify window.addEventListener('load'...)
+        window.addEventListener('load', function() {
+            const savedState = JSON.parse(sessionStorage.getItem('activePopup'));
+            const savedNumber = sessionStorage.getItem('lastDialedNumber');
+            
+            if (savedState && savedNumber) {
+                phoneNumber = savedNumber; // Restore the phone number
+                updateDisplay(); // Update the display with restored number
+                updateNumberPill(savedNumber); // Add this line to update the number pill
+                
+                if (savedState.firstPopup) {
+                    document.getElementById('popupOverlay').style.display = 'flex';
+                }
+                if (savedState.secondPopup) {
+                    document.getElementById('popupOverlay2').style.display = 'flex';
+                }
+                if (savedState.liftedPopup) {
+                    document.getElementById('popupOverlayLifted').style.display = 'flex';
+                }
+            }
+        });
+
+        document.getElementById('backToIndex').addEventListener('click', function() {
+            // Check if this window was opened in a new tab/window
+            if (window.opener) {
+                // Close this tab/window
+                window.close();
+                // Navigate the opener window to index.html if it exists
+                if (!window.opener.closed) {
+                    window.opener.location.href = 'index.html';
+                }
+            } else {
+                // If no opener, just navigate current window to index.html
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Activity button functionality
+        const activityBtn = document.getElementById('activityBtn');
+        const activityDropdown = document.getElementById('activityDropdown');
+        let activityListeners = {};
+
+        // Toggle dropdown
+        activityBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            activityDropdown.classList.toggle('show');
+            updateActivityCounts(); // Fetch counts when dropdown is opened
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!activityDropdown.contains(e.target) && !activityBtn.contains(e.target)) {
+                activityDropdown.classList.remove('show');
+            }
+        });
+
+        // Function to update activity counts
+        function updateActivityCounts() {
+            const telecallerEmail = localStorage.getItem('telecallerEmail');
+            const telecallerName = telecallerEmail.split('@')[0];
+            const db = firebase.database();
+
+            // Clear any existing listeners
+            Object.values(activityListeners).forEach(listener => {
+                if (listener.ref) {
+                    listener.ref.off('value', listener.callback);
+                }
+            });
+
+            // Get all calls count
+            const allRef = db.ref(telecallerName);
+            allRef.on('value', snapshot => {
+                const count = snapshot.numChildren();
+                document.getElementById('allCallsCount').textContent = `(${count})`;
+            });
+            activityListeners.all = { ref: allRef };
+
+            // Get Unanswered calls count (Not Lift)
+            const notLiftRef = db.ref(telecallerName).orderByChild('status').equalTo('Unanswered');
+            notLiftRef.on('value', snapshot => {
+                const count = snapshot.numChildren();
+                document.getElementById('notLiftCount').textContent = `(${count})`;
+            });
+            activityListeners.notLift = { ref: notLiftRef };
+
+            // Get Callback calls count
+            const callbackRef = db.ref(telecallerName).orderByChild('status').equalTo('Callback');
+            callbackRef.on('value', snapshot => {
+                const count = snapshot.numChildren();
+                document.getElementById('callbackCount').textContent = `(${count})`;
+            });
+            activityListeners.callback = { ref: callbackRef };
+
+            // Get Interested calls count
+            const interestedRef = db.ref(telecallerName).orderByChild('status').equalTo('Interested');
+            interestedRef.on('value', snapshot => {
+                const count = snapshot.numChildren();
+                document.getElementById('interestedCount').textContent = `(${count})`;
+            });
+            activityListeners.interested = { ref: interestedRef };
+        }
+
+        // Redirect to dialpadclicktocalls.html when option clicked
+        function showActivity(type) {
+            const telecallerEmail = localStorage.getItem('telecallerEmail');
+            window.location.href = `dialpadclicktocalls.html?type=${type}&telecaller=${telecallerEmail}`;
+        }
+
+        // Clean up listeners when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            Object.values(activityListeners).forEach(listener => {
+                if (listener.ref) {
+                    listener.ref.off('value');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
